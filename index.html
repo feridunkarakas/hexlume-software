@@ -3,48 +3,54 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Hexlume Software — mobil oyun ve uygulamalar.">
-    <title>Hexlume Software</title>
+    <meta name="description" content="Hexlume Software — thoughtful mobile games and apps.">
+    <title>Hexlume Software — Numlet</title>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html" aria-label="Hexlume Software ana sayfa">HEX<span>LUME</span></a>
-      <a class="header-link" href="privacy.html">Gizlilik</a>
+      <a class="brand" href="index.html" aria-label="Hexlume Software home">HEX<span>LUME</span></a>
+      <div class="header-actions">
+        <div class="language-switcher" role="group" aria-label="Language selection">
+          <button class="language active" type="button" data-language="tr" aria-pressed="true">TR</button>
+          <button class="language" type="button" data-language="en" aria-pressed="false">EN</button>
+        </div>
+        <a class="header-link" href="privacy.html" data-i18n="privacyNav">Gizlilik</a>
+      </div>
     </header>
-
     <main>
       <section class="hero" aria-labelledby="page-title">
-        <p class="eyebrow">MOBİL OYUNLAR &amp; UYGULAMALAR</p>
-        <h1 id="page-title">Küçük ekranlar için<br><em>parlak fikirler.</em></h1>
-        <p class="intro">Hexlume Software, keyifli ve erişilebilir mobil deneyimler geliştirir.</p>
-      </section>
-
-      <section class="app-section" aria-labelledby="app-title">
-        <article class="app-card">
-          <div class="app-icon" aria-hidden="true">
-            <span>123</span><b>+</b>
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="eyebrow">BAĞIMSIZ MOBİL DENEYİMLER</p>
+          <h1 id="page-title" data-i18n-html="headline">Zihni harekete geçiren<br><em>iyi oyunlar.</em></h1>
+          <p class="intro" data-i18n="intro">Hexlume Software, her gün keyifle geri döneceğiniz sade ve düşündüren mobil deneyimler geliştirir.</p>
+          <div class="store-row" aria-label="Download Numlet">
+            <a class="store-button primary" href="https://play.google.com/store/apps/details?id=com.numbermatchpuzzle.app" target="_blank" rel="noopener noreferrer"><span class="store-mark">▶</span><span><small data-i18n="googleSmall">GOOGLE PLAY'DEN</small><strong data-i18n="googleName">İndirin</strong></span></a>
+            <a class="store-button" href="https://apps.apple.com/cy/app/numlet-number-logic-puzzle/id6760181329?l=tr" target="_blank" rel="noopener noreferrer"><span class="apple-mark">●</span><span><small data-i18n="appleSmall">APP STORE'DAN</small><strong data-i18n="appleName">İndirin</strong></span></a>
           </div>
+        </div>
+        <div class="hero-art" aria-hidden="true"><div class="number-grid"><span>8</span><span>3</span><span>4</span><span>6</span><span>2</span><span>8</span><span>1</span><span>9</span><span>5</span><i>+</i></div></div>
+      </section>
+      <section class="app-section" aria-labelledby="app-title">
+        <div class="section-heading"><p class="eyebrow" data-i18n="featured">ÖNE ÇIKAN UYGULAMA</p><span data-i18n="available">iOS · Android</span></div>
+        <article class="app-card">
+          <div class="app-icon" aria-hidden="true"><span>12</span><b>+</b><em>12</em></div>
           <div class="app-copy">
-            <p class="eyebrow">GOOGLE PLAY'DE</p>
-            <h2 id="app-title">Number Match Puzzle</h2>
-            <p>Sayıları eşleştirin, hamlelerinizi planlayın ve kendi temponuzda bulmacaları çözün.</p>
-            <a class="button" href="https://play.google.com/store/apps/details?id=com.numbermatchpuzzle.app" target="_blank" rel="noopener noreferrer">Google Play’de aç <span aria-hidden="true">↗</span></a>
+            <h2 id="app-title">Numlet</h2>
+            <p class="app-subtitle" data-i18n="appSubtitle">Sayı Mantık Bulmacası</p>
+            <p data-i18n="appDescription">Sayıları eşleştirin, hamlelerinizi planlayın ve kendi temponuzda bulmacaları çözün.</p>
+            <div class="card-links"><a href="https://play.google.com/store/apps/details?id=com.numbermatchpuzzle.app" target="_blank" rel="noopener noreferrer" data-i18n-html="googleLink">Google Play’de görüntüle <span aria-hidden="true">↗</span></a><a href="https://apps.apple.com/cy/app/numlet-number-logic-puzzle/id6760181329?l=tr" target="_blank" rel="noopener noreferrer" data-i18n-html="appleLink">App Store’da görüntüle <span aria-hidden="true">↗</span></a></div>
           </div>
         </article>
       </section>
-
-      <section class="contact" aria-labelledby="contact-title">
-        <p class="eyebrow">İLETİŞİM</p>
-        <h2 id="contact-title">Merhaba demek ister misiniz?</h2>
-        <a class="email" href="mailto:hexlumessoftware@gmail.com">hexlumessoftware@gmail.com</a>
+      <section class="values" aria-label="Hexlume approach">
+        <div><span>01</span><h2 data-i18n="valueOneTitle">Odaklanmış tasarım</h2><p data-i18n="valueOneText">Açık, sakin ve anlaşılır deneyimler.</p></div>
+        <div><span>02</span><h2 data-i18n="valueTwoTitle">Her gün oynanabilir</h2><p data-i18n="valueTwoText">Kısa bir mola veya uzun bir bulmaca seansı için.</p></div>
+        <div><span>03</span><h2 data-i18n="valueThreeTitle">Düşünerek yapılmış</h2><p data-i18n="valueThreeText">Detaylara önem veren bağımsız ürünler.</p></div>
       </section>
+      <section class="contact" aria-labelledby="contact-title"><p class="eyebrow" data-i18n="contactEyebrow">İLETİŞİM</p><h2 id="contact-title" data-i18n-html="contactTitle">Bir fikriniz mi var?<br><em>Konuşalım.</em></h2><a class="email" href="mailto:hexlumessoftware@gmail.com">hexlumessoftware@gmail.com <span aria-hidden="true">↗</span></a></section>
     </main>
-
-    <footer>
-      <span>© <span id="year"></span> Hexlume Software</span>
-      <a href="privacy.html">Gizlilik Politikası</a>
-    </footer>
+    <footer><span>© <span id="year"></span> Hexlume Software</span><a href="privacy.html" data-i18n="privacyFooter">Gizlilik Politikası</a></footer>
     <script src="script.js"></script>
   </body>
 </html>
