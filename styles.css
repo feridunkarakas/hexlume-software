@@ -1,0 +1,54 @@
+:root {
+  --ink: #131527;
+  --paper: #f7f8ff;
+  --purple: #725cff;
+  --pink: #ff5d99;
+  --muted: #61647a;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; color: var(--ink); background: var(--paper); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.55; }
+a { color: inherit; }
+.site-header, main, footer { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+.site-header { min-height: 86px; display: flex; align-items: center; justify-content: space-between; }
+.brand { color: var(--ink); font-size: 1.12rem; font-weight: 900; letter-spacing: .08em; text-decoration: none; }
+.brand span { color: var(--purple); }
+.header-link, footer a { color: var(--muted); font-size: .93rem; text-underline-offset: 4px; }
+.hero { padding: 84px 0 66px; max-width: 760px; }
+.eyebrow { margin: 0 0 14px; color: var(--purple); font-size: .73rem; font-weight: 800; letter-spacing: .14em; }
+h1, h2 { letter-spacing: -.045em; line-height: 1.02; }
+h1 { margin: 0; font-size: clamp(3.35rem, 9vw, 7.4rem); }
+h1 em { color: var(--purple); font-style: normal; }
+.intro { max-width: 520px; margin: 30px 0 0; color: var(--muted); font-size: clamp(1.05rem, 2vw, 1.3rem); }
+.app-section { padding-bottom: 102px; }
+.app-card { display: grid; grid-template-columns: 230px 1fr; gap: clamp(28px, 5vw, 66px); align-items: center; padding: clamp(28px, 5vw, 58px); overflow: hidden; color: white; background: linear-gradient(125deg, #5944e7, #7b62ff 58%, #a894ff); border-radius: 30px; box-shadow: 0 24px 55px rgba(73, 53, 196, .20); }
+.app-icon { position: relative; display: grid; place-items: center; width: min(100%, 180px); aspect-ratio: 1; border: 8px solid rgba(255,255,255,.95); border-radius: 34px; background: linear-gradient(145deg, #ff7db0, #fe4e8c); box-shadow: inset 0 -18px 30px rgba(143, 14, 75, .18), 0 16px 30px rgba(31, 18, 100, .27); font-size: 2.65rem; font-weight: 900; letter-spacing: -.14em; transform: rotate(-7deg); }
+.app-icon b { position: absolute; right: 14px; bottom: 7px; color: #ffe065; font-size: 2rem; transform: rotate(7deg); }
+.app-copy .eyebrow { color: #ddd8ff; }
+.app-copy h2 { margin: 0; font-size: clamp(2rem, 4vw, 3.75rem); }
+.app-copy > p:not(.eyebrow) { max-width: 570px; margin: 18px 0 26px; color: rgba(255,255,255,.88); font-size: 1.08rem; }
+.button { display: inline-flex; align-items: center; gap: 9px; padding: 13px 18px; color: var(--ink); background: white; border-radius: 999px; font-weight: 800; text-decoration: none; transition: transform .18s ease, box-shadow .18s ease; }
+.button:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(31, 18, 100, .22); }
+.contact { padding: 8px 0 105px; }
+.contact h2 { max-width: 680px; margin: 0 0 20px; font-size: clamp(2.4rem, 5vw, 4.5rem); }
+.email { color: var(--purple); font-size: clamp(1.08rem, 2vw, 1.38rem); font-weight: 700; text-underline-offset: 6px; }
+footer { display: flex; gap: 18px; justify-content: space-between; padding: 28px 0 34px; border-top: 1px solid #dedfec; color: var(--muted); font-size: .87rem; }
+.policy-page { max-width: 790px; padding: 70px 0 90px; }
+.policy-page h1 { font-size: clamp(3rem, 7vw, 5.7rem); }
+.policy-date { color: var(--muted); margin: 24px 0 34px; }
+.policy-note { margin: 0 0 44px; padding: 19px 20px; border-left: 4px solid var(--pink); color: #45485e; background: #fff0f6; border-radius: 0 12px 12px 0; }
+.policy-page section { margin-top: 34px; }
+.policy-page h2 { margin: 0 0 10px; font-size: 1.52rem; }
+.policy-page section p { margin: 0; color: #45485e; }
+.policy-page section a { color: var(--purple); font-weight: 700; }
+@media (max-width: 620px) {
+  .site-header, main, footer { width: min(100% - 34px, 1120px); }
+  .hero { padding: 58px 0 48px; }
+  .app-section { padding-bottom: 72px; }
+  .app-card { grid-template-columns: 1fr; border-radius: 23px; }
+  .app-icon { width: 128px; border-radius: 25px; font-size: 2rem; }
+  .contact { padding-bottom: 72px; }
+  footer { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .policy-page { padding: 42px 0 66px; }
+}
