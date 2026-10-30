@@ -156,6 +156,16 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; font-size:
 				<div class="msg" id="wordMsg"></div>
 				<div class="chips" id="words"></div>
 			</div>
+			<div class="card" style="border-color: var(--bad)">
+				<h2>Oyunu sıfırla</h2>
+				<p class="muted" style="font-size:13px;margin:0 0 10px">Admin hesapları dışındaki bütün oyuncular silinir: hesaplar, profiller, sıralama skorları, Game Center bağlantıları, bulut kayıtları, yasak bayrakları. Oyuncunun telefonundaki oyun da bir sonraki açılışta baştan başlar (build 19 ve sonrası; satın alımlar kalır). Etkinlikler, ayarlar, yasaklı kelimeler ve işlem kaydı kalır. Geri alınamaz.</p>
+				<label for="resetConfirm">Onaylamak için SIFIRLA yaz</label>
+				<div class="row">
+					<input id="resetConfirm" autocomplete="off" style="flex:3 1 200px">
+					<button class="danger" id="resetBtn" style="flex:0 0 auto">Oyunu sıfırla</button>
+				</div>
+				<div class="msg" id="resetMsg"></div>
+			</div>
 		</section>
 
 		<section data-page="log" class="hidden">
@@ -427,6 +437,18 @@ $("wordAdd").onclick = async () => {
 	} catch (e) { say("wordMsg", e.message, "err"); }
 };
 
+$("resetBtn").onclick = async () => {
+	if ($("resetConfirm").value.trim() !== "SIFIRLA") return say("resetMsg", "Onay için kutuya SIFIRLA yaz.", "err");
+	if (!confirm("Bütün oyuncular silinecek ve oyun herkes için baştan başlayacak. Emin misin?")) return;
+	say("resetMsg", "Sıfırlanıyor…");
+	try {
+		const r = await rpc("admin_reset_game", { p_confirm: "SIFIRLA" });
+		if (!r.ok) return say("resetMsg", r.error === "confirm" ? "Onay yazısı hatalı." : errText(r), "err");
+		$("resetConfirm").value = "";
+		say("resetMsg", `Oyun sıfırlandı: ${r.users} hesap, ${r.profiles} profil, ${r.cloud_saves} bulut kaydı silindi.`, "good");
+	} catch (e) { say("resetMsg", e.message, "err"); }
+};
+
 // --- işlem kaydı ---
 async function loadLog() {
 	const box = $("log");
@@ -435,7 +457,7 @@ async function loadLog() {
 		const list = await rpc("admin_audit_log", { p_limit: 100 });
 		if (!list.length) return box.replaceChildren(el("p", "muted", "Kayıt yok."));
 		const names = { set_flags: "Oyuncu bayrağı", delete_scores: "Skor silme", reset_nickname: "Ad sıfırlama", event_save: "Etkinlik kaydı",
-			event_end: "Etkinlik bitirme", setting_set: "Ayar", word_add: "Kelime ekleme", word_remove: "Kelime silme" };
+			event_end: "Etkinlik bitirme", setting_set: "Ayar", word_add: "Kelime ekleme", word_remove: "Kelime silme", reset_game: "Oyunu sıfırlama" };
 		box.replaceChildren(...list.map((a) => {
 			const it = el("div", "item");
 			const top = el("div", "top");
