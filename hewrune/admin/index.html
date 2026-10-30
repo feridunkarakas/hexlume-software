@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Hewrune Admin</title>
+<!-- Tur 74: Hewrune admin paneli. Kaynak: rune-hunter/docs/admin/index.html; yayın: hexlume-software/hewrune/admin/.
+     Sunucu: supabase/migrations/0007_admin_liveops.sql (her işlem sunucuda rh_is_admin ile denetlenir).
+     Harici betik yok: Supabase Auth + REST uçlarına doğrudan fetch. Kullanıcı verisi yalnız textContent ile yazılır. -->
+<style>
+:root {
+	--bg: #120d1f; --panel: #1c1530; --panel2: #251c3d; --line: #3a2e5c; --text: #ece8f8; --muted: #a49cc0;
+	--accent: #7a55d8; --accent2: #5ab4ff; --good: #3fbf6f; --bad: #e85a5a; --gold: #f2b531;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+header h1 { font-size: 18px; margin: 0; }
+header .who { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+main { max-width: 900px; margin: 0 auto; padding: 16px; }
+nav { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 53px; z-index: 4; }
+nav button { flex: 0 0 auto; }
+button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); }
+button.danger { background: #4a1c2c; border-color: var(--bad); }
+button.ok { background: #18402a; border-color: var(--good); }
+button.on { background: var(--accent); border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+input, select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; width: 100%; }
+label { display: block; color: var(--muted); font-size: 13px; margin: 10px 0 4px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+.card h2 { font-size: 16px; margin: 0 0 10px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.stat { background: var(--panel2); border-radius: 12px; padding: 12px; }
+.stat b { display: block; font-size: 24px; }
+.stat span { color: var(--muted); font-size: 13px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row > * { flex: 1 1 140px; }
+.item { border-top: 1px solid var(--line); padding: 12px 0; }
+.item:first-child { border-top: 0; }
+.item .top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.item .meta { color: var(--muted); font-size: 13px; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.actions button { padding: 6px 10px; font-size: 13px; }
+.badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px; margin-left: 6px; background: var(--panel2); border: 1px solid var(--line); }
+.badge.active { border-color: var(--good); color: #9be8b6; }
+.badge.scheduled { border-color: var(--accent2); color: #a9d6ff; }
+.badge.ended { color: var(--muted); }
+.badge.banned { border-color: var(--bad); color: #ffb0b0; }
+.badge.hidden { border-color: var(--gold); color: #ffe08a; }
+.msg { min-height: 20px; margin-top: 8px; font-size: 14px; }
+.msg.err { color: #ff9d8a; }
+.msg.good { color: #9be8b6; }
+.muted { color: var(--muted); }
+.hidden { display: none !important; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--line); border-radius: 99px; padding: 4px 6px 4px 10px; font-size: 13px; }
+.chip button { padding: 0 7px; border-radius: 99px; font-size: 12px; }
+#login { max-width: 380px; margin: 60px auto; }
+pre { white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+	<h1>Hewrune Admin</h1>
+	<div class="row" style="flex:0 1 auto;gap:10px">
+		<span class="who" id="who"></span>
+		<button id="logout" class="hidden">Çıkış</button>
+	</div>
+</header>
+
+<section id="login" class="card">
+	<h2>Giriş</h2>
+	<label for="email">E-posta</label>
+	<input id="email" type="email" autocomplete="username">
+	<label for="password">Şifre</label>
+	<input id="password" type="password" autocomplete="current-password">
+	<div style="margin-top:14px"><button class="primary" id="loginBtn" style="width:100%">Giriş yap</button></div>
+	<div class="msg" id="loginMsg"></div>
+</section>
+
+<div id="app" class="hidden">
+	<nav id="tabs">
+		<button data-tab="overview" class="on">Özet</button>
+		<button data-tab="events">Etkinlikler</button>
+		<button data-tab="players">Oyuncular</button>
+		<button data-tab="settings">Ayarlar</button>
+		<button data-tab="log">İşlem kaydı</button>
+	</nav>
+	<main>
+		<section data-page="overview">
+			<div class="card"><h2>Özet</h2><div class="grid" id="stats"></div></div>
+		</section>
+
+		<section data-page="events" class="hidden">
+			<div class="card">
+				<h2>Etkinlik başlat / planla</h2>
+				<div class="row">
+					<div><label for="evKind">Tür</label>
+						<select id="evKind">
+							<option value="boss_x2">Boss ödülü çarpanı</option>
+							<option value="golden_tree">Altın Ağaç sıklığı</option>
+						</select></div>
+					<div><label for="evMult">Çarpan</label><input id="evMult" type="number" min="1" max="10" step="1" value="2"></div>
+				</div>
+				<div class="row">
+					<div><label for="evStart">Başlangıç (boş = şimdi)</label><input id="evStart" type="datetime-local"></div>
+					<div><label for="evDur">Süre</label>
+						<select id="evDur">
+							<option value="1">1 saat</option><option value="3">3 saat</option><option value="6">6 saat</option>
+							<option value="24" selected>24 saat</option><option value="48">48 saat</option><option value="72">3 gün</option>
+							<option value="168">7 gün</option>
+						</select></div>
+				</div>
+				<label for="evNote">Not (yalnız panelde görünür)</label><input id="evNote" maxlength="200">
+				<div style="margin-top:14px"><button class="primary" id="evSave">Kaydet</button></div>
+				<div class="msg" id="evMsg"></div>
+				<p class="muted" style="font-size:13px">Oyuncular etkinliği oyunu açınca ya da en geç 10 dakika içinde görür. Panel etkinliği varken hafta sonu takvimindeki etkinliğin yerine geçer.</p>
+			</div>
+			<div class="card"><h2>Etkinlikler</h2><div id="events"></div></div>
+		</section>
+
+		<section data-page="players" class="hidden">
+			<div class="card">
+				<h2>Oyuncu ara</h2>
+				<div class="row">
+					<input id="q" placeholder="Ad parçası ya da RH-XXXXXX (boş = son görülenler)" style="flex:3 1 220px">
+					<button class="primary" id="qBtn" style="flex:0 0 auto">Ara</button>
+				</div>
+				<div class="msg" id="plMsg"></div>
+			</div>
+			<div class="card"><div id="players"><p class="muted">Aramak için yukarıyı kullan.</p></div></div>
+		</section>
+
+		<section data-page="settings" class="hidden">
+			<div class="card">
+				<h2>Oyun ayarları</h2>
+				<div class="row">
+					<div><label>Hafta sonu takvimi</label><button id="calBtn">…</button></div>
+					<div><label for="nickH">Ad değiştirme aralığı (saat)</label>
+						<div class="row"><input id="nickH" type="number" min="0" step="1"><button id="nickSave" style="flex:0 0 auto">Kaydet</button></div></div>
+				</div>
+				<div class="msg" id="setMsg"></div>
+			</div>
+			<div class="card">
+				<h2>Yasaklı kelimeler (oyuncu adı)</h2>
+				<div class="row">
+					<input id="word" placeholder="kelime (yalnız a-z, Türkçe harf yok)" style="flex:3 1 200px">
+					<select id="wordMode" style="flex:1 1 120px">
+						<option value="contains">içinde geçerse</option><option value="exact">tam eşleşme</option><option value="allow">izin ver</option>
+					</select>
+					<button id="wordAdd" style="flex:0 0 auto">Ekle</button>
+				</div>
+				<div class="msg" id="wordMsg"></div>
+				<div class="chips" id="words"></div>
+			</div>
+		</section>
+
+		<section data-page="log" class="hidden">
+			<div class="card"><h2>Son işlemler</h2><div id="log"></div></div>
+		</section>
+	</main>
+</div>
+
+<script>
+"use strict";
+const URL_BASE = "https://ritbwgflitrirtxwtuqw.supabase.co";
+const KEY = "sb_publishable_sjep8e4_UVK3cj9QSbmAtg_IMZKjmfC";  // oyunla aynı herkese açık anahtar (data/backend.json > anon_key)
+const STORE = "hewrune_admin_session";
+const KIND_NAMES = { boss_x2: "Boss ödülü", golden_tree: "Altın Ağaç" };
+const PARAM_OF = { boss_x2: ["mult", 10], golden_tree: ["golden_mult", 20] };
+let session = null;
+
+const $ = (id) => document.getElementById(id);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function say(id, text, kind) { const m = $(id); m.textContent = text || ""; m.className = "msg" + (kind ? " " + kind : ""); }
+function fmt(ts) { if (!ts) return "-"; return new Date(ts).toLocaleString("tr-TR", { dateStyle: "short", timeStyle: "short" }); }
+function ago(ts) {
+	if (!ts) return "-";
+	const s = (Date.now() - new Date(ts).getTime()) / 1000;
+	if (s < 120) return "az önce";
+	if (s < 7200) return Math.round(s / 60) + " dk önce";
+	if (s < 172800) return Math.round(s / 3600) + " sa önce";
+	return Math.round(s / 86400) + " gün önce";
+}
+
+function loadSession() { try { session = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { session = null; } }
+function saveSession() { try { session ? localStorage.setItem(STORE, JSON.stringify(session)) : localStorage.removeItem(STORE); } catch (e) {} }
+
+async function auth(grant, body) {
+	const r = await fetch(`${URL_BASE}/auth/v1/token?grant_type=${grant}`, {
+		method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+	const d = await r.json().catch(() => ({}));
+	if (!r.ok || !d.access_token) throw new Error(d.error_description || d.msg || d.error || ("HTTP " + r.status));
+	session = { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || (Date.now() / 1000 + (d.expires_in || 3600)), email: d.user && d.user.email };
+	saveSession();
+}
+
+async function ensureToken() {
+	if (!session) throw new Error("Oturum yok");
+	if (session.expires_at - 60 > Date.now() / 1000) return;
+	await auth("refresh_token", { refresh_token: session.refresh_token });
+}
+
+async function rpc(fn, args) {
+	await ensureToken();
+	const r = await fetch(`${URL_BASE}/rest/v1/rpc/${fn}`, {
+		method: "POST",
+		headers: { apikey: KEY, Authorization: "Bearer " + session.access_token, "Content-Type": "application/json", Accept: "application/json" },
+		body: JSON.stringify(args || {}) });
+	const d = await r.json().catch(() => null);
+	if (!r.ok) {
+		const m = d && (d.message || d.hint) || ("HTTP " + r.status);
+		throw new Error(m === "forbidden" ? "Bu işlem için admin yetkisi gerekiyor" : m);
+	}
+	return d;
+}
+
+function errText(d) {
+	const map = { no_player: "Oyuncu bulunamadı", bad_kind_or_params: "Tür ya da çarpan geçersiz", bad_time: "Bitiş başlangıçtan sonra olmalı",
+		too_long: "En çok 31 gün sürebilir ve 90 gün içinde bitmeli", no_event: "Etkinlik bulunamadı", bad_value: "Geçersiz değer",
+		no_key: "Böyle bir ayar yok", bad_word: "Kelime yalnız a-z harfleri olmalı (2-32)", exhausted: "Yeni ad bulunamadı" };
+	return map[d && d.error] || (d && d.error) || "Bilinmeyen hata";
+}
+
+// --- giriş ---
+async function start() {
+	loadSession();
+	if (!session) return showLogin();
+	try {
+		const me = await rpc("admin_me");
+		if (!me.admin) { say("loginMsg", "Bu hesap admin değil.", "err"); logout(false); return; }
+		$("who").textContent = me.email || session.email || "";
+		$("login").classList.add("hidden");
+		$("app").classList.remove("hidden");
+		$("logout").classList.remove("hidden");
+		openTab("overview");
+	} catch (e) {
+		say("loginMsg", e.message, "err");
+		logout(false);
+	}
+}
+function showLogin() { $("login").classList.remove("hidden"); $("app").classList.add("hidden"); $("logout").classList.add("hidden"); $("who").textContent = ""; }
+function logout(clearMsg = true) { session = null; saveSession(); if (clearMsg) say("loginMsg", ""); showLogin(); }
+
+$("loginBtn").onclick = async () => {
+	say("loginMsg", "Giriş yapılıyor…");
+	try {
+		await auth("password", { email: $("email").value.trim(), password: $("password").value });
+		$("password").value = "";
+		say("loginMsg", "");
+		await start();
+	} catch (e) { say("loginMsg", e.message === "Invalid login credentials" ? "E-posta ya da şifre hatalı." : e.message, "err"); }
+};
+$("password").addEventListener("keydown", (e) => { if (e.key === "Enter") $("loginBtn").click(); });
+$("logout").onclick = () => logout();
+
+// --- sekmeler ---
+document.querySelectorAll("#tabs button").forEach((b) => b.onclick = () => openTab(b.dataset.tab));
+function openTab(name) {
+	document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
+	document.querySelectorAll("[data-page]").forEach((p) => p.classList.toggle("hidden", p.dataset.page !== name));
+	({ overview: loadStats, events: loadEvents, players: () => {}, settings: loadSettings, log: loadLog })[name]();
+}
+
+// --- özet ---
+async function loadStats() {
+	const box = $("stats");
+	box.replaceChildren(el("span", "muted", "Yükleniyor…"));
+	try {
+		const s = await rpc("admin_stats");
+		const items = [["players", "Toplam oyuncu"], ["active_24h", "Son 24 saat"], ["active_7d", "Son 7 gün"], ["new_24h", "Yeni (24 saat)"],
+			["gc_linked", "Game Center bağlı"], ["live_events", "Etkin etkinlik"], ["banned", "Yasaklı"], ["hidden", "Gizli"]];
+		box.replaceChildren(...items.map(([k, t]) => { const c = el("div", "stat"); c.append(el("b", null, String(s[k] ?? 0)), el("span", null, t)); return c; }));
+	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
+}
+
+// --- etkinlikler ---
+$("evKind").onchange = () => { const [, max] = PARAM_OF[$("evKind").value]; $("evMult").max = max; $("evMult").value = $("evKind").value === "boss_x2" ? 2 : 5; };
+$("evSave").onclick = async () => {
+	const kind = $("evKind").value;
+	const [pk, max] = PARAM_OF[kind];
+	const mult = Number($("evMult").value);
+	if (!(mult >= 1 && mult <= max)) return say("evMsg", `Çarpan 1-${max} arası olmalı.`, "err");
+	const start = $("evStart").value ? new Date($("evStart").value) : new Date();
+	const end = new Date(start.getTime() + Number($("evDur").value) * 3600 * 1000);
+	try {
+		const r = await rpc("admin_event_save", { p_id: null, p_kind: kind, p_starts: start.toISOString(), p_ends: end.toISOString(),
+			p_params: { [pk]: mult }, p_note: $("evNote").value || null });
+		if (!r.ok) return say("evMsg", errText(r), "err");
+		say("evMsg", `Kaydedildi: ${KIND_NAMES[kind]} x${mult}, ${fmt(start)} – ${fmt(end)}`, "good");
+		$("evNote").value = ""; $("evStart").value = "";
+		loadEvents();
+	} catch (e) { say("evMsg", e.message, "err"); }
+};
+
+async function loadEvents() {
+	const box = $("events");
+	box.replaceChildren(el("span", "muted", "Yükleniyor…"));
+	try {
+		const list = await rpc("admin_events");
+		if (!list.length) return box.replaceChildren(el("p", "muted", "Henüz etkinlik yok."));
+		const status = { active: "Sürüyor", scheduled: "Planlandı", ended: "Bitti" };
+		box.replaceChildren(...list.map((e) => {
+			const it = el("div", "item");
+			const top = el("div", "top");
+			const p = e.params || {};
+			const mult = p.mult || p.golden_mult;
+			const title = el("b", null, (KIND_NAMES[e.kind] || e.kind) + (mult ? ` x${mult}` : ""));
+			title.append(el("span", "badge " + e.status, status[e.status] || e.status));
+			top.append(title, el("span", "meta", `${fmt(e.starts_at)} – ${fmt(e.ends_at)}`));
+			it.append(top);
+			if (e.note) it.append(el("div", "meta", e.note));
+			if (e.status !== "ended") {
+				const a = el("div", "actions");
+				const b = el("button", "danger", e.status === "active" ? "Şimdi bitir" : "İptal et");
+				b.onclick = async () => {
+					if (!confirm(e.status === "active" ? "Etkinlik şimdi bitsin mi?" : "Planlanan etkinlik silinsin mi?")) return;
+					try { await rpc("admin_event_end", { p_id: e.id }); loadEvents(); } catch (x) { alert(x.message); }
+				};
+				a.append(b); it.append(a);
+			}
+			return it;
+		}));
+	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
+}
+
+// --- oyuncular ---
+$("qBtn").onclick = searchPlayers;
+$("q").addEventListener("keydown", (e) => { if (e.key === "Enter") searchPlayers(); });
+async function searchPlayers() {
+	const box = $("players");
+	say("plMsg", "Aranıyor…");
+	try {
+		const list = await rpc("admin_players", { p_query: $("q").value.trim(), p_limit: 50 });
+		say("plMsg", list.length ? `${list.length} oyuncu` : "Bulunamadı.");
+		box.replaceChildren(...list.map(playerItem));
+	} catch (e) { say("plMsg", e.message, "err"); }
+}
+
+function playerItem(p) {
+	const it = el("div", "item");
+	const top = el("div", "top");
+	const name = el("b", null, p.nickname);
+	if (p.banned) name.append(el("span", "badge banned", "Yasaklı"));
+	if (p.hidden) name.append(el("span", "badge hidden", "Gizli"));
+	if (p.gc_linked) name.append(el("span", "badge", "Game Center"));
+	top.append(name, el("span", "meta", p.public_id));
+	it.append(top);
+	const sc = p.scores || {};
+	const scoreText = ["chapter", "tower", "sg", "boss"].filter((k) => sc[k] != null)
+		.map((k) => ({ chapter: "Bölüm", tower: "Kule", sg: "SG", boss: "Boss" })[k] + " " + Number(sc[k]).toLocaleString("tr-TR", { maximumFractionDigits: 0 })).join(" · ");
+	it.append(el("div", "meta", `Son görülme ${ago(p.last_seen_at)} · kayıt ${fmt(p.created_at)} · ${p.platform || "?"} ${p.app_version || ""}`));
+	it.append(el("div", "meta", scoreText || "Skor yok"));
+	if (p.reason) it.append(el("div", "meta", "Sebep: " + p.reason));
+	const a = el("div", "actions");
+	const act = (label, cls, fn) => { const b = el("button", cls, label); b.onclick = fn; a.append(b); };
+	const done = async (promise, okText) => {
+		try { const r = await promise; if (r && r.ok === false) return alert(errText(r)); say("plMsg", okText, "good"); searchPlayers(); }
+		catch (e) { alert(e.message); }
+	};
+	if (p.banned) act("Yasağı kaldır", "ok", () => done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: false, p_hidden: p.hidden, p_reason: null }), "Yasak kaldırıldı."));
+	else act("Yasakla", "danger", () => {
+		const why = prompt(`${p.nickname} yasaklansın mı? Skorları silinir ve sıralamaya giremez.\nSebep (oyuncuya gösterilir, boş bırakılabilir):`, "");
+		if (why === null) return;
+		done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: true, p_hidden: p.hidden, p_reason: why }), "Yasaklandı.");
+	});
+	act(p.hidden ? "Sıralamada göster" : "Sıralamada gizle", null, () => {
+		if (!p.hidden && !confirm(`${p.nickname} sıralamada gizlensin mi? Skorları silinir.`)) return;
+		done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: p.banned, p_hidden: !p.hidden, p_reason: p.reason }), "Güncellendi.");
+	});
+	act("Adı sıfırla", null, () => {
+		if (!confirm(`"${p.nickname}" adı rastgele bir adla değiştirilsin mi?`)) return;
+		done(rpc("admin_reset_nickname", { p_user: p.user_id }), "Ad sıfırlandı.");
+	});
+	act("Skorları sil", null, () => {
+		if (!confirm(`${p.nickname} oyuncusunun bütün skorları silinsin mi?`)) return;
+		done(rpc("admin_delete_scores", { p_user: p.user_id, p_kind: null }), "Skorlar silindi.");
+	});
+	it.append(a);
+	return it;
+}
+
+// --- ayarlar ---
+let settings = {};
+async function loadSettings() {
+	try {
+		settings = await rpc("admin_settings");
+		const cal = Number(settings.calendar_events ?? 1) !== 0;
+		$("calBtn").textContent = cal ? "Açık (kapat)" : "Kapalı (aç)";
+		$("calBtn").className = cal ? "ok" : "danger";
+		$("nickH").value = Math.round(Number(settings.nickname_change_sec ?? 86400) / 3600);
+		const words = await rpc("admin_words");
+		const modeName = { contains: "içinde", exact: "tam", allow: "izin" };
+		$("words").replaceChildren(...words.map((w) => {
+			const c = el("span", "chip", `${w.word} · ${modeName[w.mode] || w.mode}`);
+			const x = el("button", null, "×");
+			x.title = "Sil";
+			x.onclick = async () => {
+				if (!confirm(`"${w.word}" listeden çıkarılsın mı?`)) return;
+				try { await rpc("admin_word_remove", { p_word: w.word, p_mode: w.mode }); loadSettings(); } catch (e) { alert(e.message); }
+			};
+			c.append(x);
+			return c;
+		}));
+	} catch (e) { say("setMsg", e.message, "err"); }
+}
+$("calBtn").onclick = async () => {
+	const cal = Number(settings.calendar_events ?? 1) !== 0;
+	if (!confirm(cal ? "Hafta sonu takvimi kapansın mı? (Yalnız paneldeki etkinlikler olur.)" : "Hafta sonu takvimi açılsın mı?")) return;
+	try { const r = await rpc("admin_setting_set", { p_key: "calendar_events", p_value: cal ? 0 : 1 }); if (!r.ok) return say("setMsg", errText(r), "err"); say("setMsg", "Kaydedildi.", "good"); loadSettings(); }
+	catch (e) { say("setMsg", e.message, "err"); }
+};
+$("nickSave").onclick = async () => {
+	const h = Number($("nickH").value);
+	if (!(h >= 0)) return say("setMsg", "Geçersiz saat.", "err");
+	try { const r = await rpc("admin_setting_set", { p_key: "nickname_change_sec", p_value: Math.round(h * 3600) }); if (!r.ok) return say("setMsg", errText(r), "err"); say("setMsg", "Kaydedildi.", "good"); }
+	catch (e) { say("setMsg", e.message, "err"); }
+};
+$("wordAdd").onclick = async () => {
+	try {
+		const r = await rpc("admin_word_add", { p_word: $("word").value, p_mode: $("wordMode").value });
+		if (!r.ok) return say("wordMsg", errText(r), "err");
+		$("word").value = ""; say("wordMsg", "Eklendi.", "good"); loadSettings();
+	} catch (e) { say("wordMsg", e.message, "err"); }
+};
+
+// --- işlem kaydı ---
+async function loadLog() {
+	const box = $("log");
+	box.replaceChildren(el("span", "muted", "Yükleniyor…"));
+	try {
+		const list = await rpc("admin_audit_log", { p_limit: 100 });
+		if (!list.length) return box.replaceChildren(el("p", "muted", "Kayıt yok."));
+		const names = { set_flags: "Oyuncu bayrağı", delete_scores: "Skor silme", reset_nickname: "Ad sıfırlama", event_save: "Etkinlik kaydı",
+			event_end: "Etkinlik bitirme", setting_set: "Ayar", word_add: "Kelime ekleme", word_remove: "Kelime silme" };
+		box.replaceChildren(...list.map((a) => {
+			const it = el("div", "item");
+			const top = el("div", "top");
+			top.append(el("b", null, names[a.action] || a.action), el("span", "meta", `${fmt(a.at)} · ${a.admin || "?"}`));
+			it.append(top, el("pre", null, JSON.stringify(a.detail)));
+			return it;
+		}));
+	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
+}
+
+start();
+</script>
+</body>
+</html>
