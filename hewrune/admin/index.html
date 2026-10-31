@@ -5,173 +5,307 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Hewrune Admin</title>
-<!-- Tur 74: Hewrune admin paneli. Kaynak: rune-hunter/docs/admin/index.html; yayın: hexlume-software/hewrune/admin/.
-     Sunucu: supabase/migrations/0007_admin_liveops.sql (her işlem sunucuda rh_is_admin ile denetlenir).
-     Harici betik yok: Supabase Auth + REST uçlarına doğrudan fetch. Kullanıcı verisi yalnız textContent ile yazılır. -->
+<!-- Tur 74: Hewrune admin paneli; Tur 76: yeni görünüm (yan menü, görsel etkinlik kartları, modal onaylar) + 3 yeni etkinlik türü.
+     Kaynak: rune-hunter/docs/admin/index.html; yayın: hexlume-software/hewrune/admin/.
+     Sunucu: supabase/migrations/0007_admin_liveops.sql + 0011_more_events.sql (her işlem sunucuda rh_is_admin ile denetlenir).
+     Harici betik yok: Supabase Auth + REST uçlarına doğrudan fetch. Kullanıcı verisi yalnız textContent ile yazılır.
+     İkonlar oyunun kendi çizimleri (data URI). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-	--bg: #120d1f; --panel: #1c1530; --panel2: #251c3d; --line: #3a2e5c; --text: #ece8f8; --muted: #a49cc0;
-	--accent: #7a55d8; --accent2: #5ab4ff; --good: #3fbf6f; --bad: #e85a5a; --gold: #f2b531;
+	--bg: #0f0b1a; --bg2: #151025; --panel: #1b1530; --panel2: #231b3d; --panel3: #2c2350; --line: #342a55; --line2: #463a70;
+	--text: #efeafc; --muted: #a39bc2; --dim: #776f96;
+	--accent: #8b5cf6; --accent2: #5ab4ff; --good: #3fcf7f; --bad: #f05d5d; --gold: #f9c22b;
+	--radius: 18px; --shadow: 0 10px 30px rgba(0, 0, 0, .35);
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
-header h1 { font-size: 18px; margin: 0; }
-header .who { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-main { max-width: 900px; margin: 0 auto; padding: 16px; }
-nav { display: flex; gap: 6px; overflow-x: auto; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 53px; z-index: 4; }
-nav button { flex: 0 0 auto; }
-button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; cursor: pointer; }
+html, body { margin: 0; }
+body { background: radial-gradient(1200px 600px at 80% -10%, #2a1a52 0%, transparent 60%), var(--bg); color: var(--text);
+	font: 15px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
+h1, h2, h3, .brand, .stat b, .ev-name { font-family: Fredoka, Inter, sans-serif; letter-spacing: .2px; }
+img.px { image-rendering: pixelated; }
+button { font: inherit; font-weight: 600; color: var(--text); background: var(--panel2); border: 1px solid var(--line2); border-radius: 12px;
+	padding: 9px 16px; cursor: pointer; transition: transform .08s, border-color .15s, background .15s; }
 button:hover { border-color: var(--accent); }
-button.primary { background: var(--accent); border-color: var(--accent); }
-button.danger { background: #4a1c2c; border-color: var(--bad); }
-button.ok { background: #18402a; border-color: var(--good); }
-button.on { background: var(--accent); border-color: var(--accent); }
-button:disabled { opacity: .5; cursor: default; }
-input, select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; width: 100%; }
-label { display: block; color: var(--muted); font-size: 13px; margin: 10px 0 4px; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 14px; }
-.card h2 { font-size: 16px; margin: 0 0 10px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
-.stat { background: var(--panel2); border-radius: 12px; padding: 12px; }
-.stat b { display: block; font-size: 24px; }
-.stat span { color: var(--muted); font-size: 13px; }
-.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.row > * { flex: 1 1 140px; }
-.item { border-top: 1px solid var(--line); padding: 12px 0; }
-.item:first-child { border-top: 0; }
-.item .top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-.item .meta { color: var(--muted); font-size: 13px; }
-.actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-.actions button { padding: 6px 10px; font-size: 13px; }
-.badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 99px; margin-left: 6px; background: var(--panel2); border: 1px solid var(--line); }
-.badge.active { border-color: var(--good); color: #9be8b6; }
-.badge.scheduled { border-color: var(--accent2); color: #a9d6ff; }
-.badge.ended { color: var(--muted); }
-.badge.banned { border-color: var(--bad); color: #ffb0b0; }
-.badge.hidden { border-color: var(--gold); color: #ffe08a; }
-.msg { min-height: 20px; margin-top: 8px; font-size: 14px; }
-.msg.err { color: #ff9d8a; }
-.msg.good { color: #9be8b6; }
-.muted { color: var(--muted); }
+button:active { transform: translateY(1px); }
+button.primary { background: linear-gradient(180deg, #9a6cff, #7646e8); border-color: #9a6cff; box-shadow: 0 4px 14px rgba(139, 92, 246, .35); }
+button.danger { background: linear-gradient(180deg, #e8555c, #c23a45); border-color: #f06a70; }
+button.ghost { background: transparent; }
+button.soft-danger { background: rgba(240, 93, 93, .12); border-color: rgba(240, 93, 93, .5); color: #ffb3b3; }
+button.soft-ok { background: rgba(63, 207, 127, .12); border-color: rgba(63, 207, 127, .5); color: #a6f0c6; }
+button:disabled { opacity: .5; cursor: default; transform: none; }
+input, select { font: inherit; color: var(--text); background: var(--bg2); border: 1px solid var(--line2); border-radius: 12px; padding: 10px 12px; width: 100%; }
+input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139, 92, 246, .25); }
+label { display: block; color: var(--muted); font-size: 13px; font-weight: 500; margin: 14px 0 6px; }
 .hidden { display: none !important; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--line); border-radius: 99px; padding: 4px 6px 4px 10px; font-size: 13px; }
-.chip button { padding: 0 7px; border-radius: 99px; font-size: 12px; }
-#login { max-width: 380px; margin: 60px auto; }
-pre { white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+/* giriş */
+#login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.login-card { width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 28px; box-shadow: var(--shadow); }
+.login-card .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.login-card .logo img { width: 48px; height: 48px; background: var(--panel2); border-radius: 14px; padding: 6px; }
+.login-card h1 { margin: 0; font-size: 26px; }
+
+/* iskelet */
+.shell { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+aside { background: rgba(21, 16, 37, .85); border-right: 1px solid var(--line); padding: 20px 14px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 6px; }
+.brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; padding: 0 8px 18px; }
+.brand img { width: 38px; height: 38px; background: var(--panel2); border-radius: 12px; padding: 5px; }
+.brand small { display: inline-block; font: 600 11px Inter, sans-serif; color: #d9c8ff; background: rgba(139, 92, 246, .25); border: 1px solid rgba(139, 92, 246, .5); padding: 2px 8px; border-radius: 99px; margin-left: 2px; }
+nav#tabs { display: flex; flex-direction: column; gap: 4px; }
+nav#tabs button { display: flex; align-items: center; gap: 12px; text-align: left; background: transparent; border: 1px solid transparent; color: var(--muted); padding: 11px 12px; }
+nav#tabs button svg { width: 20px; height: 20px; flex: none; }
+nav#tabs button:hover { color: var(--text); background: var(--panel); }
+nav#tabs button.on { color: var(--text); background: var(--panel2); border-color: var(--line2); }
+nav#tabs button.on svg { color: var(--accent); }
+.side-foot { margin-top: auto; border-top: 1px solid var(--line); padding: 14px 8px 0; }
+.side-foot .who { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 10px; }
+main { padding: 28px 32px 60px; max-width: 1080px; width: 100%; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.page-head h1 { font-size: 30px; margin: 0; }
+.page-head p { margin: 2px 0 0; color: var(--muted); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 18px; }
+.card h2 { font-size: 19px; margin: 0 0 4px; }
+.card .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.card.danger-zone { border-color: rgba(240, 93, 93, .55); background: linear-gradient(180deg, rgba(240, 93, 93, .06), transparent 60%), var(--panel); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.row > * { flex: 1 1 160px; }
+.row > .fit { flex: 0 0 auto; }
+
+/* özet */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; position: relative; overflow: hidden; }
+.stat::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--c, var(--accent)); }
+.stat b { display: block; font-size: 30px; font-weight: 600; line-height: 1.1; }
+.stat span { color: var(--muted); font-size: 13px; }
+.live-box { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.live-box .ev-icon { width: 64px; height: 64px; }
+.live-box .info { flex: 1 1 220px; }
+
+/* etkinlik kartları */
+.ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.ev-card { text-align: left; display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: var(--panel2); border: 2px solid var(--line); min-height: 150px; }
+.ev-card:hover { border-color: var(--c); }
+.ev-card.sel { border-color: var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%), var(--panel2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent); }
+.ev-icon { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 22%, transparent); border: 2px solid color-mix(in srgb, var(--c) 70%, transparent); flex: none; }
+.ev-icon img { width: 62%; height: 62%; object-fit: contain; }
+.ev-name { font-size: 17px; font-weight: 600; }
+.ev-desc { color: var(--muted); font-size: 13px; font-weight: 400; line-height: 1.4; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { padding: 8px 14px; border-radius: 99px; background: var(--bg2); }
+.seg button.on { background: var(--accent); border-color: var(--accent); }
+.preview { display: flex; align-items: center; gap: 14px; background: var(--bg2); border: 1px dashed var(--line2); border-radius: 16px; padding: 14px; margin-top: 18px; }
+.preview .pill { display: flex; align-items: center; gap: 12px; background: #140e24; border: 3px solid var(--c); border-radius: 18px; padding: 8px 18px 8px 10px; box-shadow: 0 0 18px color-mix(in srgb, var(--c) 35%, transparent); }
+.preview .pill .ev-icon { width: 40px; height: 40px; }
+.preview .pill small { display: block; font-weight: 700; font-size: 11px; letter-spacing: .6px; color: color-mix(in srgb, var(--c) 60%, white); }
+.preview .pill b { font-family: Fredoka, sans-serif; font-size: 18px; }
+
+.list-item { display: flex; gap: 14px; align-items: flex-start; padding: 14px; border-radius: 14px; background: var(--panel2); border: 1px solid var(--line); margin-top: 10px; border-left: 4px solid var(--c, var(--line2)); }
+.list-item .grow { flex: 1 1 auto; min-width: 0; }
+.list-item .top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
+.list-item .meta { color: var(--muted); font-size: 13px; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.actions button { padding: 6px 12px; font-size: 13px; border-radius: 10px; }
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; margin-left: 8px; background: var(--bg2); border: 1px solid var(--line2); vertical-align: middle; }
+.badge.active { border-color: var(--good); color: #a6f0c6; }
+.badge.active::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); }
+.badge.scheduled { border-color: var(--accent2); color: #b6dcff; }
+.badge.ended { color: var(--dim); }
+.badge.banned { border-color: var(--bad); color: #ffb3b3; }
+.badge.hidden-b { border-color: var(--gold); color: #ffe08a; }
+.badge.gc { border-color: var(--good); color: #a6f0c6; }
+.section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); margin: 18px 0 2px; }
+.avatar { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font: 700 18px Fredoka, sans-serif; background: var(--panel3); flex: none; }
+.empty { text-align: center; color: var(--muted); padding: 26px 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--line2); border-radius: 99px; padding: 4px 6px 4px 12px; font-size: 13px; }
+.chip button { padding: 0 8px; border-radius: 99px; font-size: 13px; line-height: 20px; }
+.chip.allow { border-color: rgba(63, 207, 127, .5); }
+.toggle { display: inline-flex; align-items: center; gap: 10px; }
+.switch { width: 50px; height: 28px; border-radius: 99px; background: var(--line2); position: relative; border: none; padding: 0; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: white; transition: left .15s; }
+.switch.on { background: var(--good); }
+.switch.on::after { left: 25px; }
+pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size: 12px; color: var(--muted); background: var(--bg2); border-radius: 10px; padding: 8px 10px; }
+.msg { min-height: 20px; margin-top: 10px; font-size: 14px; }
+.msg.err { color: #ff9d8a; }
+.msg.good { color: #a6f0c6; }
+
+/* bildirim + modal */
+#toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: var(--panel3); border: 1px solid var(--line2); border-radius: 14px; padding: 12px 18px; box-shadow: var(--shadow); opacity: 0; transition: .2s; pointer-events: none; z-index: 30; max-width: calc(100% - 32px); }
+#toast.show { opacity: 1; transform: translateX(-50%); }
+#toast.err { border-color: var(--bad); }
+#toast.good { border-color: var(--good); }
+#modal { position: fixed; inset: 0; background: rgba(8, 5, 16, .7); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 40; }
+#modal .box { width: 100%; max-width: 440px; background: var(--panel); border: 1px solid var(--line2); border-radius: 22px; padding: 22px; box-shadow: var(--shadow); }
+#modal h3 { margin: 0 0 8px; font-size: 21px; }
+#modal p { margin: 0; color: var(--muted); }
+#modal .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+@media (max-width: 820px) {
+	.shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; }
+	aside { position: sticky; top: 0; height: auto; z-index: 10; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
+	.brand { padding: 0; font-size: 18px; }
+	.brand img { width: 32px; height: 32px; }
+	.brand span, .brand small { display: none; }
+	nav#tabs { flex-direction: row; overflow-x: auto; flex: 1; scrollbar-width: none; }
+	nav#tabs button { flex: none; padding: 8px 10px; gap: 6px; font-size: 14px; }
+	nav#tabs button span { display: none; }
+	nav#tabs button.on span { display: inline; }
+	.side-foot { margin: 0; border: 0; padding: 0; }
+	.side-foot .who { display: none; }
+	.side-foot button { padding: 8px 10px; }
+	main { padding: 18px 16px 50px; }
+	.page-head h1 { font-size: 24px; }
+}
 </style>
 </head>
 <body>
-<header>
-	<h1>Hewrune Admin</h1>
-	<div class="row" style="flex:0 1 auto;gap:10px">
-		<span class="who" id="who"></span>
-		<button id="logout" class="hidden">Çıkış</button>
-	</div>
-</header>
 
-<section id="login" class="card">
-	<h2>Giriş</h2>
-	<label for="email">E-posta</label>
-	<input id="email" type="email" autocomplete="username">
-	<label for="password">Şifre</label>
-	<input id="password" type="password" autocomplete="current-password">
-	<div style="margin-top:14px"><button class="primary" id="loginBtn" style="width:100%">Giriş yap</button></div>
-	<div class="msg" id="loginMsg"></div>
+<section id="login">
+	<div class="login-card">
+		<div class="logo"><img class="px" id="loginLogo" alt=""><div><h1>Hewrune</h1><span class="muted small">Yönetim paneli</span></div></div>
+		<label for="email">E-posta</label>
+		<input id="email" type="email" autocomplete="username">
+		<label for="password">Şifre</label>
+		<input id="password" type="password" autocomplete="current-password">
+		<div style="margin-top:18px"><button class="primary" id="loginBtn" style="width:100%">Giriş yap</button></div>
+		<div class="msg" id="loginMsg"></div>
+	</div>
 </section>
 
-<div id="app" class="hidden">
-	<nav id="tabs">
-		<button data-tab="overview" class="on">Özet</button>
-		<button data-tab="events">Etkinlikler</button>
-		<button data-tab="players">Oyuncular</button>
-		<button data-tab="settings">Ayarlar</button>
-		<button data-tab="log">İşlem kaydı</button>
-	</nav>
+<div id="app" class="shell hidden">
+	<aside>
+		<div class="brand"><img class="px" id="brandLogo" alt=""><span>Hewrune</span><small>Admin</small></div>
+		<nav id="tabs">
+			<button data-tab="overview" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg><span>Özet</span></button>
+			<button data-tab="events"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg><span>Etkinlikler</span></button>
+			<button data-tab="players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/><path d="M16 4.5a4 4 0 0 1 0 7"/><path d="M19 14.5c1.8 1 3 3.1 3 5.5"/></svg><span>Oyuncular</span></button>
+			<button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Ayarlar</span></button>
+			<button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg><span>İşlem kaydı</span></button>
+		</nav>
+		<div class="side-foot">
+			<div class="who" id="who"></div>
+			<button id="logout" class="ghost" title="Çıkış">Çıkış</button>
+		</div>
+	</aside>
+
 	<main>
+		<!-- ÖZET -->
 		<section data-page="overview">
-			<div class="card"><h2>Özet</h2><div class="grid" id="stats"></div></div>
-		</section>
-
-		<section data-page="events" class="hidden">
+			<div class="page-head"><div><h1>Özet</h1><p>Oyunun şu anki durumu</p></div><button id="refreshStats" class="ghost">Yenile</button></div>
+			<div class="stats" id="stats"></div>
 			<div class="card">
-				<h2>Etkinlik başlat / planla</h2>
-				<div class="row">
-					<div><label for="evKind">Tür</label>
-						<select id="evKind">
-							<option value="boss_x2">Boss ödülü çarpanı</option>
-							<option value="golden_tree">Altın Ağaç sıklığı</option>
-						</select></div>
-					<div><label for="evMult">Çarpan</label><input id="evMult" type="number" min="1" max="10" step="1" value="2"></div>
-				</div>
-				<div class="row">
-					<div><label for="evStart">Başlangıç (boş = şimdi)</label><input id="evStart" type="datetime-local"></div>
-					<div><label for="evDur">Süre</label>
-						<select id="evDur">
-							<option value="1">1 saat</option><option value="3">3 saat</option><option value="6">6 saat</option>
-							<option value="24" selected>24 saat</option><option value="48">48 saat</option><option value="72">3 gün</option>
-							<option value="168">7 gün</option>
-						</select></div>
-				</div>
-				<label for="evNote">Not (yalnız panelde görünür)</label><input id="evNote" maxlength="200">
-				<div style="margin-top:14px"><button class="primary" id="evSave">Kaydet</button></div>
-				<div class="msg" id="evMsg"></div>
-				<p class="muted" style="font-size:13px">Oyuncular etkinliği oyunu açınca ya da en geç 10 dakika içinde görür. Panel etkinliği varken hafta sonu takvimindeki etkinliğin yerine geçer.</p>
+				<h2>Şu an oyunda</h2>
+				<p class="sub">Süren etkinlik oyunda Menü panelinin en üstünde görünür</p>
+				<div id="liveNow"></div>
 			</div>
-			<div class="card"><h2>Etkinlikler</h2><div id="events"></div></div>
 		</section>
 
-		<section data-page="players" class="hidden">
+		<!-- ETKİNLİKLER -->
+		<section data-page="events" class="hidden">
+			<div class="page-head"><div><h1>Etkinlikler</h1><p>Başlat, planla, bitir</p></div></div>
 			<div class="card">
-				<h2>Oyuncu ara</h2>
+				<h2>Yeni etkinlik</h2>
+				<p class="sub">1. Etkinliği seç</p>
+				<div class="ev-grid" id="evKinds"></div>
+				<p class="sub" style="margin-top:20px">2. Gücünü ve süresini ayarla</p>
+				<label>Çarpan</label>
 				<div class="row">
-					<input id="q" placeholder="Ad parçası ya da RH-XXXXXX (boş = son görülenler)" style="flex:3 1 220px">
-					<button class="primary" id="qBtn" style="flex:0 0 auto">Ara</button>
+					<div class="seg" id="multSeg" style="flex:3 1 260px"></div>
+					<input id="evMult" type="number" min="1" max="10" step="1" value="2" class="fit" style="width:90px" aria-label="Çarpan">
+				</div>
+				<label>Süre</label>
+				<div class="seg" id="durSeg"></div>
+				<div class="row">
+					<div><label for="evStart">Başlangıç (boş = hemen)</label><input id="evStart" type="datetime-local"></div>
+					<div><label for="evNote">Not (yalnız panelde görünür)</label><input id="evNote" maxlength="200" placeholder="ör. 1 Kasım kampanyası"></div>
+				</div>
+				<div class="preview" id="evPreview"></div>
+				<div class="row" style="margin-top:16px;align-items:center">
+					<p class="muted small" style="margin:0;flex:3 1 260px">Oyuncular oyunu açınca ya da en geç 10 dakika içinde görür. Panel etkinliği sürerken hafta sonu takvimindeki etkinliğin yerine geçer.</p>
+					<button class="primary fit" id="evSave">Etkinliği başlat</button>
+				</div>
+				<div class="msg" id="evMsg"></div>
+			</div>
+			<div class="card"><h2>Etkinlik listesi</h2><div id="events"></div></div>
+		</section>
+
+		<!-- OYUNCULAR -->
+		<section data-page="players" class="hidden">
+			<div class="page-head"><div><h1>Oyuncular</h1><p>Ara, yasakla, sıralamadan gizle</p></div></div>
+			<div class="card">
+				<div class="row">
+					<input id="q" placeholder="Ad parçası ya da RH-XXXXXX (boş = son görülenler)" style="flex:3 1 240px">
+					<button class="primary fit" id="qBtn">Ara</button>
 				</div>
 				<div class="msg" id="plMsg"></div>
+				<div id="players"><div class="empty">Son görülen oyuncular için boş bırakıp Ara'ya bas.</div></div>
 			</div>
-			<div class="card"><div id="players"><p class="muted">Aramak için yukarıyı kullan.</p></div></div>
 		</section>
 
+		<!-- AYARLAR -->
 		<section data-page="settings" class="hidden">
+			<div class="page-head"><div><h1>Ayarlar</h1><p>Oyun genelindeki kurallar</p></div></div>
 			<div class="card">
-				<h2>Oyun ayarları</h2>
+				<h2>Hafta sonu takvimi</h2>
+				<p class="sub">Açıkken her cumartesi-pazar sırayla 2x Boss Ödülü ya da Altın Ağaç Festivali otomatik başlar.</p>
+				<div class="toggle"><button class="switch" id="calBtn" aria-label="Hafta sonu takvimi"></button><span id="calText" class="muted"></span></div>
+			</div>
+			<div class="card">
+				<h2>Ad değiştirme</h2>
+				<p class="sub">İki ücretsiz ad değişikliği arasındaki süre. Arada değiştirmek isteyen 500 elmas öder.</p>
 				<div class="row">
-					<div><label>Hafta sonu takvimi</label><button id="calBtn">…</button></div>
-					<div><label for="nickH">Ad değiştirme aralığı (saat)</label>
-						<div class="row"><input id="nickH" type="number" min="0" step="1"><button id="nickSave" style="flex:0 0 auto">Kaydet</button></div></div>
+					<div><label for="nickD">Bekleme (gün)</label><input id="nickD" type="number" min="0" step="1"></div>
+					<button id="nickSave" class="fit">Kaydet</button>
 				</div>
 				<div class="msg" id="setMsg"></div>
 			</div>
 			<div class="card">
-				<h2>Yasaklı kelimeler (oyuncu adı)</h2>
+				<h2>Yasaklı kelimeler</h2>
+				<p class="sub">Oyuncu adlarında. Yalnız a-z harfleri; "izin ver" bir kelimeyi listeden muaf tutar.</p>
 				<div class="row">
-					<input id="word" placeholder="kelime (yalnız a-z, Türkçe harf yok)" style="flex:3 1 200px">
-					<select id="wordMode" style="flex:1 1 120px">
+					<input id="word" placeholder="kelime" style="flex:3 1 200px">
+					<select id="wordMode" style="flex:1 1 150px">
 						<option value="contains">içinde geçerse</option><option value="exact">tam eşleşme</option><option value="allow">izin ver</option>
 					</select>
-					<button id="wordAdd" style="flex:0 0 auto">Ekle</button>
+					<button id="wordAdd" class="fit">Ekle</button>
 				</div>
 				<div class="msg" id="wordMsg"></div>
 				<div class="chips" id="words"></div>
 			</div>
-			<div class="card" style="border-color: var(--bad)">
+			<div class="card danger-zone">
 				<h2>Oyunu sıfırla</h2>
-				<p class="muted" style="font-size:13px;margin:0 0 10px">Admin hesapları dışındaki bütün oyuncular silinir: hesaplar, profiller, sıralama skorları, Game Center bağlantıları, bulut kayıtları, yasak bayrakları. Oyuncunun telefonundaki oyun da bir sonraki açılışta baştan başlar (build 19 ve sonrası; satın alımlar kalır). Etkinlikler, ayarlar, yasaklı kelimeler ve işlem kaydı kalır. Geri alınamaz.</p>
-				<label for="resetConfirm">Onaylamak için SIFIRLA yaz</label>
+				<p class="sub">Admin hesapları dışındaki bütün oyuncular silinir: hesaplar, profiller, sıralama skorları, Game Center bağlantıları, bulut kayıtları, yasaklar. Oyuncunun telefonundaki oyun da bir sonraki açılışta baştan başlar (build 19 ve sonrası; satın alımlar kalır). Etkinlikler, ayarlar, yasaklı kelimeler ve işlem kaydı kalır. Geri alınamaz.</p>
 				<div class="row">
-					<input id="resetConfirm" autocomplete="off" style="flex:3 1 200px">
-					<button class="danger" id="resetBtn" style="flex:0 0 auto">Oyunu sıfırla</button>
+					<div><label for="resetConfirm">Onaylamak için SIFIRLA yaz</label><input id="resetConfirm" autocomplete="off"></div>
+					<button class="danger fit" id="resetBtn">Oyunu sıfırla</button>
 				</div>
 				<div class="msg" id="resetMsg"></div>
 			</div>
 		</section>
 
+		<!-- İŞLEM KAYDI -->
 		<section data-page="log" class="hidden">
-			<div class="card"><h2>Son işlemler</h2><div id="log"></div></div>
+			<div class="page-head"><div><h1>İşlem kaydı</h1><p>Paneldeki son 100 işlem</p></div><button id="refreshLog" class="ghost">Yenile</button></div>
+			<div class="card"><div id="log"></div></div>
 		</section>
 	</main>
+</div>
+
+<div id="toast"></div>
+<div id="modal" class="hidden">
+	<div class="box">
+		<h3 id="mTitle"></h3>
+		<p id="mText"></p>
+		<input id="mInput" class="hidden" style="margin-top:14px">
+		<div class="btns"><button id="mNo" class="ghost">Vazgeç</button><button id="mYes" class="primary">Tamam</button></div>
+	</div>
 </div>
 
 <script>
@@ -179,14 +313,29 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 4px 0 0; font-size:
 const URL_BASE = "https://ritbwgflitrirtxwtuqw.supabase.co";
 const KEY = "sb_publishable_sjep8e4_UVK3cj9QSbmAtg_IMZKjmfC";  // oyunla aynı herkese açık anahtar (data/backend.json > anon_key)
 const STORE = "hewrune_admin_session";
-const KIND_NAMES = { boss_x2: "Boss ödülü", golden_tree: "Altın Ağaç" };
-const PARAM_OF = { boss_x2: ["mult", 10], golden_tree: ["golden_mult", 20] };
+const ICONS = {"boss_x2": "data:image/png;base64,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", "golden_tree": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAA4CAYAAACCNsqxAAAC90lEQVR4nO1ZMYvUQBR+GcJhZSEWV3tgIeteccVVsREsrrMStLput7Kx8RfY2GtnpWBlZ3FgtdUVCp5hC0HrLRaLq+SQ3PESZn075r28mUkCwXyw7Gwyk/e9N9+8eZMFGDFixIgRQ0YSMmh6a/+Su3f282vQM32RhhD+/OMR2+dgD3pxKvEhLRHW4GDvPbTlVOJDuli8ZfuY7Mk/17B/3XWLFJ7DH3ix5ZTWgURD+vTZCszkJttHIieRtrDkrQMa8kkMaSRcNwvcdddRGnEKDflEIv3mwXW4M/3eSrQ5Bzk0kTfsSICSdB2KfO0tD+xvnDHSrOCaktJu0hTt0iiJeP7uBkwe/9qQcY2HzIAJiLxXHkegMzvZCn6/2gWAbeNIRisJQ5xuyj7eUnGB0b42X5Vt+10aztfitHMOUXD3OckY32h/md8r2xeLyV+9C4tXImcC0uhmrMpgvi6jbclXMqlmwBdFw8xo+nlrfHl2eyvTcFmH20UtqKabcn5QxJEoh7poWzJW01TbdekwBrXEMf0cn5yrHpDOn26R4vI1dQAREmUvjUtRx0XpRtclSFEI91ojTqPuaht/202oDpI8CgV5OhvcBiRG3CVvIZGmxjk5FB7ZI1gqPnpnjSilYUiGwbZUaKnyeAx5ThqFE2m6+2I7qjpsC+Kmk6/LD20fvtxtrMd7Ib6T5ey9JVk72NaQDqoOQ0njaeeCVJMUSLiS4rn6zBlE3KewwmIMyXNHtNBTvrdU7NRaXWpgK0kKu1iRcMj7Fq8B9mSEaDqLSiiUC1CC90D3WIdocsCdncNI0qXN0IEoGY1saBW59Mganb70pLJpSnWn6f6m/frjIpp8UFaxRo9PKtnUVZAl0Q6TbRozuCoFqujPjjLoEyb2AX29D+99y//w6dswiT+8f7eT5xoYKAwMFGaI+u6ceFf6RoxS6RtmiPrulHiX+m6FOFaKvnXK7CgT/9/R4P9cnFNFtDmtzyKjnvQpEahB6KEiqiSN1SkitCy+As1XwVgbZexHAAAAAElFTkSuQmCC", "coin_rain": "data:image/png;base64,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", "egg_hunt": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABCUlEQVR4nGNgGOqAkRTFekr6/2HsS/cuEqWXkRSDL969ABfTVzYgySK8hq9o+fz/1dq3cIwMkH2FDTARMjzJporBSfMXivjrde/AGOYrfJbgtQAEJNS8GESDhMAYHcAswQeYiHX9ayTD+EXtUNTi8wUTIddjc+nH14eI9gUTPtfDAMjF6K5GB7h8QTAOYC5GdjU6wOcLoiygBAxeC/iJiBeiLNh3nY2seCHKghe3thE0gCwLQAXYvCNtGL7gxxMsoMIPW8FHMIheIPkCV7BgK0YIWoDLF6S4nuhU9ALqC5Al6BbhsxgECFYWemjFBqx8glkM8iW+SoekGi0JySJY8BGq0WheJ9McAACsPJxNqdWNHgAAAABJRU5ErkJggg==", "rune_fest": "data:image/png;base64,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", "events": "data:image/png;base64,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", "hero": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADGklEQVR4nK1WT0hUQRj/3rrqxYoOaq6r0Kqwir1lbbE/YtAlKpIOQR5roYNQROTRQDvUoRD2kPAOgXrTQ12C1YQQkoIkd9sME8zdUihdKiik2kNsfLM7b2ffzpuZt/mDYWa+mf1+v/nm++atBorQfYHs+sBlaDEmpHvDK09gvKMP3iYTmmyvW1UAOtONiSw6F2Fy+72qy1IBui+Q5alGO/au+XuOCOz8sdBUQoyndkJ8qb7dHMuuQrMqRhGIirYa0vu6mpUJrSKpXSTCxU5wE43A37Ud0idjG1IBSIyNPTlPkFTA/4goJwERJQJ4IlSuwQ7DM0/LL8MWY4JkfjnAqNEIKgnQ86VG8XH0Gul9EhIekPjnyYMA3lrYO58SCtCs2c+CVgIFexVr0ytch4QYAIL9wxCfvm3acc6rBDf7yrELKIgNIStmKf0bIE/kCp2HmvsRk5ja1gfEJy8SgLCqo4Jid8Kwb7OgjZRaOmbOkdwKns1RFSBUPiS7AZdoEUV0DY0XJR2vrNr6O4Q2u/tHKH8Ni0rKW2sOyd1jTjDg2cqKAPso/WjSSGOTLRNNgAi4Ljo9QvmesVQxIXemtqR799w6SnoZubIA+kiNaJVkfvxAdcme1OSYOW4fnIITyzPl/yPSLa/i80NnSH+z6huci8Xh5Vam5DcNzFiVnCsAySkh4s/XBdIIPB2Q6LsI3h4/jHVXw9XFDFcA9eM4ArovkMUwm4QSsCLexTfg0fgLMh4420t6IwpSEW6rAe+XDTG9b2LzFO9lI4C4EO6BzmAzxCMPydzjP42dUITbevpTXwr1PteQe/+pLSQgZ2FEFwj559VZaS646QA3juTvjYqh5NSG83RqlTSKyOAruDF6xJx3Bq+TXoW8SAAVwc4pOWvLVFVAU2ObOb/72A91hbcJZh/McX3ZQbNb4GUx2kKHu4UOXy8tOvqQue0W7Jy8SX6HuvpWqGzshU/PhnJO9reaNoBFVW6xABHS2x8AsElsuypA9wWytL4pjGiO8Mox9hlqUKp/xwIAAJY3fzmy76qA/ImKvhHMKe3sUvwD7+WQIGld2J0AAAAASUVORK5CYII="};
+// Oyundaki karşılığı: data/economy.json > weekend_event > events (sınırlar sunucuda: 0011_more_events.sql > rh_event_params_ok)
+const KINDS = {
+	coin_rain: { name: "Altın Yağmuru", param: "coin_mult", max: 10, def: 2, presets: [2, 3, 5], card: "Kırılan nesnelerden daha çok coin düşer.", color: "#ffd84a",
+		desc: (m) => `Nesnelerden ${m} kat coin düşer.` },
+	egg_hunt: { name: "Yumurta Avı", param: "egg_mult", max: 10, def: 3, presets: [2, 3, 5], card: "Boss ve kule katlarında Pet Yumurtası daha sık düşer.", color: "#7ee07a",
+		desc: (m) => `Boss ve kule katlarında Pet Yumurtası şansı ${m} katı (normalde %5).` },
+	rune_fest: { name: "Rün Festivali", param: "rune_mult", max: 5, def: 2, presets: [2, 3], card: "Doğuşta (rebirth) daha çok rün kazanılır.", color: "#b98cff",
+		desc: (m) => `Doğuşta kazanılan rün ${m} katı.` },
+	boss_x2: { name: "Boss Ödülü", param: "mult", max: 10, def: 2, presets: [2, 3, 5], card: "Boss ödülleri (elmas, taş, coin) katlanır.", color: "#ff7a5c",
+		desc: (m) => `Boss ödülleri (elmas, taş, coin) ${m} katı.` },
+	golden_tree: { name: "Altın Ağaç", param: "golden_mult", max: 20, def: 5, presets: [3, 5, 10], card: "Altın ağaçlar daha sık çıkar.", color: "#f9c22b",
+		desc: (m) => `Altın ağaçlar ${m} kat sık çıkar.` },
+};
+const DURATIONS = [[1, "1 saat"], [3, "3 saat"], [6, "6 saat"], [24, "1 gün"], [48, "2 gün"], [72, "3 gün"], [168, "7 gün"]];
 let session = null;
+let evKind = "coin_rain";
+let evDur = 24;
 
 const $ = (id) => document.getElementById(id);
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function say(id, text, kind) { const m = $(id); m.textContent = text || ""; m.className = "msg" + (kind ? " " + kind : ""); }
-function fmt(ts) { if (!ts) return "-"; return new Date(ts).toLocaleString("tr-TR", { dateStyle: "short", timeStyle: "short" }); }
+function fmt(ts) { if (!ts) return "-"; return new Date(ts).toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" }); }
 function ago(ts) {
 	if (!ts) return "-";
 	const s = (Date.now() - new Date(ts).getTime()) / 1000;
@@ -195,6 +344,43 @@ function ago(ts) {
 	if (s < 172800) return Math.round(s / 3600) + " sa önce";
 	return Math.round(s / 86400) + " gün önce";
 }
+function left(ts) {
+	const s = Math.max(0, (new Date(ts).getTime() - Date.now()) / 1000);
+	const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+	return d ? `${d} gün ${h} sa` : h ? `${h} sa ${m} dk` : `${m} dk`;
+}
+function multOf(e) { const k = KINDS[e.kind]; const p = e.params || {}; return k ? Number(p[k.param] ?? k.def) : null; }
+function evTitle(kind, m) { const k = KINDS[kind]; return k ? `${m}x ${k.name}` : kind; }
+function evIcon(kind, size) {
+	const k = KINDS[kind];
+	const box = el("div", "ev-icon");
+	box.style.setProperty("--c", k ? k.color : "#8b5cf6");
+	if (size) { box.style.width = box.style.height = size + "px"; }
+	const img = el("img", "px"); img.alt = ""; img.src = ICONS[kind] || ICONS.events;
+	box.append(img);
+	return box;
+}
+
+// --- bildirim + modal (tarayıcının confirm/prompt kutuları yerine) ---
+let toastT = 0;
+function toast(text, kind) {
+	const t = $("toast"); t.textContent = text; t.className = "show" + (kind ? " " + kind : "");
+	clearTimeout(toastT); toastT = setTimeout(() => t.className = "", 2600);
+}
+function ask(title, text, { yes = "Tamam", danger = false, input = null } = {}) {
+	return new Promise((resolve) => {
+		$("mTitle").textContent = title; $("mText").textContent = text || "";
+		$("mInput").classList.toggle("hidden", input === null);
+		$("mInput").value = input ?? ""; $("mInput").placeholder = "Sebep (oyuncuya gösterilir, boş bırakılabilir)";
+		$("mYes").textContent = yes; $("mYes").className = danger ? "danger" : "primary";
+		$("modal").classList.remove("hidden");
+		if (input !== null) $("mInput").focus();
+		const done = (v) => { $("modal").classList.add("hidden"); $("mYes").onclick = $("mNo").onclick = null; resolve(v); };
+		$("mYes").onclick = () => done(input !== null ? $("mInput").value : true);
+		$("mNo").onclick = () => done(input !== null ? null : false);
+	});
+}
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("modal").classList.contains("hidden")) $("mNo").click(); });
 
 function loadSession() { try { session = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { session = null; } }
 function saveSession() { try { session ? localStorage.setItem(STORE, JSON.stringify(session)) : localStorage.removeItem(STORE); } catch (e) {} }
@@ -229,9 +415,9 @@ async function rpc(fn, args) {
 }
 
 function errText(d) {
-	const map = { no_player: "Oyuncu bulunamadı", bad_kind_or_params: "Tür ya da çarpan geçersiz", bad_time: "Bitiş başlangıçtan sonra olmalı",
-		too_long: "En çok 31 gün sürebilir ve 90 gün içinde bitmeli", no_event: "Etkinlik bulunamadı", bad_value: "Geçersiz değer",
-		no_key: "Böyle bir ayar yok", bad_word: "Kelime yalnız a-z harfleri olmalı (2-32)", exhausted: "Yeni ad bulunamadı" };
+	const map = { no_player: "Oyuncu bulunamadı", bad_kind_or_params: "Tür ya da çarpan geçersiz (sunucu bu etkinliği tanımıyorsa 0011 SQL'i çalıştırılmalı)",
+		bad_time: "Bitiş başlangıçtan sonra olmalı", too_long: "En çok 31 gün sürebilir ve 90 gün içinde bitmeli", no_event: "Etkinlik bulunamadı",
+		bad_value: "Geçersiz değer", no_key: "Böyle bir ayar yok", bad_word: "Kelime yalnız a-z harfleri olmalı (2-32)", exhausted: "Yeni ad bulunamadı" };
 	return map[d && d.error] || (d && d.error) || "Bilinmeyen hata";
 }
 
@@ -245,14 +431,13 @@ async function start() {
 		$("who").textContent = me.email || session.email || "";
 		$("login").classList.add("hidden");
 		$("app").classList.remove("hidden");
-		$("logout").classList.remove("hidden");
 		openTab("overview");
 	} catch (e) {
 		say("loginMsg", e.message, "err");
 		logout(false);
 	}
 }
-function showLogin() { $("login").classList.remove("hidden"); $("app").classList.add("hidden"); $("logout").classList.add("hidden"); $("who").textContent = ""; }
+function showLogin() { $("login").classList.remove("hidden"); $("app").classList.add("hidden"); $("who").textContent = ""; }
 function logout(clearMsg = true) { session = null; saveSession(); if (clearMsg) say("loginMsg", ""); showLogin(); }
 
 $("loginBtn").onclick = async () => {
@@ -273,67 +458,147 @@ function openTab(name) {
 	document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
 	document.querySelectorAll("[data-page]").forEach((p) => p.classList.toggle("hidden", p.dataset.page !== name));
 	({ overview: loadStats, events: loadEvents, players: () => {}, settings: loadSettings, log: loadLog })[name]();
+	window.scrollTo(0, 0);
 }
 
 // --- özet ---
+$("refreshStats").onclick = () => loadStats();
 async function loadStats() {
 	const box = $("stats");
 	box.replaceChildren(el("span", "muted", "Yükleniyor…"));
 	try {
 		const s = await rpc("admin_stats");
-		const items = [["players", "Toplam oyuncu"], ["active_24h", "Son 24 saat"], ["active_7d", "Son 7 gün"], ["new_24h", "Yeni (24 saat)"],
-			["gc_linked", "Game Center bağlı"], ["live_events", "Etkin etkinlik"], ["banned", "Yasaklı"], ["hidden", "Gizli"]];
-		box.replaceChildren(...items.map(([k, t]) => { const c = el("div", "stat"); c.append(el("b", null, String(s[k] ?? 0)), el("span", null, t)); return c; }));
+		const items = [["players", "Toplam oyuncu", "#8b5cf6"], ["active_24h", "Son 24 saatte oynayan", "#3fcf7f"], ["active_7d", "Son 7 günde oynayan", "#5ab4ff"],
+			["new_24h", "Yeni (24 saat)", "#f9c22b"], ["gc_linked", "Game Center bağlı", "#7ee07a"], ["live_events", "Süren etkinlik", "#ff7a5c"],
+			["banned", "Yasaklı", "#f05d5d"], ["hidden", "Sıralamada gizli", "#a39bc2"]];
+		box.replaceChildren(...items.map(([k, t, c]) => {
+			const d = el("div", "stat"); d.style.setProperty("--c", c);
+			d.append(el("b", null, Number(s[k] ?? 0).toLocaleString("tr-TR")), el("span", null, t)); return d;
+		}));
+	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
+	loadLiveNow();
+}
+async function loadLiveNow() {
+	const box = $("liveNow");
+	try {
+		const list = await rpc("admin_events");
+		const act = list.find((e) => e.status === "active");
+		const next = list.filter((e) => e.status === "scheduled").sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))[0];
+		const wrap = el("div", "live-box");
+		if (act) {
+			const k = KINDS[act.kind];
+			const info = el("div", "info");
+			const t = el("h2", null, evTitle(act.kind, multOf(act))); t.append(el("span", "badge active", "Sürüyor"));
+			info.append(t, el("div", "muted", (k ? k.desc(multOf(act)) : "") + ` Bitmesine ${left(act.ends_at)}.`));
+			const b = el("button", "soft-danger fit", "Şimdi bitir");
+			b.onclick = () => endEvent(act, () => loadStats());
+			wrap.append(evIcon(act.kind, 64), info, b);
+		} else {
+			const info = el("div", "info");
+			info.append(el("h2", null, "Panel etkinliği yok"),
+				el("div", "muted", "Hafta sonu takvimi açıksa cumartesi-pazar otomatik etkinlik olur." + (next ? ` Sıradaki: ${evTitle(next.kind, multOf(next))}, ${fmt(next.starts_at)}.` : "")));
+			const b = el("button", "primary fit", "Etkinlik başlat");
+			b.onclick = () => openTab("events");
+			wrap.append(evIcon("events", 64), info, b);
+		}
+		box.replaceChildren(wrap);
 	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
 }
 
 // --- etkinlikler ---
-$("evKind").onchange = () => { const [, max] = PARAM_OF[$("evKind").value]; $("evMult").max = max; $("evMult").value = $("evKind").value === "boss_x2" ? 2 : 5; };
+function buildEventForm() {
+	$("evKinds").replaceChildren(...Object.entries(KINDS).map(([id, k]) => {
+		const b = el("button", "ev-card" + (id === evKind ? " sel" : ""));
+		b.style.setProperty("--c", k.color);
+		b.append(evIcon(id), el("div", "ev-name", k.name), el("div", "ev-desc", k.card));
+		b.onclick = () => { evKind = id; $("evMult").max = k.max; $("evMult").value = k.def; buildEventForm(); };
+		return b;
+	}));
+	const k = KINDS[evKind];
+	const m = Number($("evMult").value);
+	$("multSeg").replaceChildren(...k.presets.map((p) => {
+		const b = el("button", p === m ? "on" : "", "x" + p);
+		b.onclick = () => { $("evMult").value = p; buildEventForm(); };
+		return b;
+	}));
+	$("durSeg").replaceChildren(...DURATIONS.map(([h, t]) => {
+		const b = el("button", h === evDur ? "on" : "", t);
+		b.onclick = () => { evDur = h; buildEventForm(); };
+		return b;
+	}));
+	renderPreview();
+}
+function renderPreview() {
+	const k = KINDS[evKind];
+	const m = Number($("evMult").value) || k.def;
+	const pill = el("div", "pill"); pill.style.setProperty("--c", k.color);
+	const txt = el("div"); txt.append(el("small", null, "ETKİNLİK AKTİF · " + DURATIONS.find(([h]) => h === evDur)[1]), el("b", null, evTitle(evKind, m)));
+	pill.append(evIcon(evKind), txt);
+	const note = el("div", "muted small"); note.style.flex = "1 1 200px";
+	note.append(el("div", null, "Başlayınca ana ekranda kayan yazıyla duyurulur; sürdüğü boyunca Menü'nün en üstünde bu kart ve açıklaması durur:"),
+		el("div", null, "“" + k.desc(m) + "”"));
+	$("evPreview").replaceChildren(pill, note);
+}
+$("evMult").oninput = () => buildEventForm();
 $("evSave").onclick = async () => {
-	const kind = $("evKind").value;
-	const [pk, max] = PARAM_OF[kind];
+	const k = KINDS[evKind];
 	const mult = Number($("evMult").value);
-	if (!(mult >= 1 && mult <= max)) return say("evMsg", `Çarpan 1-${max} arası olmalı.`, "err");
+	if (!(mult >= 1 && mult <= k.max)) return say("evMsg", `Çarpan 1-${k.max} arası olmalı.`, "err");
 	const start = $("evStart").value ? new Date($("evStart").value) : new Date();
-	const end = new Date(start.getTime() + Number($("evDur").value) * 3600 * 1000);
+	const end = new Date(start.getTime() + evDur * 3600 * 1000);
 	try {
-		const r = await rpc("admin_event_save", { p_id: null, p_kind: kind, p_starts: start.toISOString(), p_ends: end.toISOString(),
-			p_params: { [pk]: mult }, p_note: $("evNote").value || null });
+		const r = await rpc("admin_event_save", { p_id: null, p_kind: evKind, p_starts: start.toISOString(), p_ends: end.toISOString(),
+			p_params: { [k.param]: mult }, p_note: $("evNote").value || null });
 		if (!r.ok) return say("evMsg", errText(r), "err");
-		say("evMsg", `Kaydedildi: ${KIND_NAMES[kind]} x${mult}, ${fmt(start)} – ${fmt(end)}`, "good");
+		say("evMsg", "");
+		toast(`${evTitle(evKind, mult)} kaydedildi: ${fmt(start)} – ${fmt(end)}`, "good");
 		$("evNote").value = ""; $("evStart").value = "";
 		loadEvents();
 	} catch (e) { say("evMsg", e.message, "err"); }
 };
+async function endEvent(e, after) {
+	const active = e.status === "active";
+	if (!await ask(active ? "Etkinlik bitirilsin mi?" : "Planlanan etkinlik silinsin mi?", evTitle(e.kind, multOf(e)) + (active ? " hemen sona erer." : " hiç başlamaz."),
+		{ yes: active ? "Bitir" : "Sil", danger: true })) return;
+	try { await rpc("admin_event_end", { p_id: e.id }); toast(active ? "Etkinlik bitirildi." : "Etkinlik silindi.", "good"); after(); } catch (x) { toast(x.message, "err"); }
+}
 
 async function loadEvents() {
+	buildEventForm();
 	const box = $("events");
 	box.replaceChildren(el("span", "muted", "Yükleniyor…"));
 	try {
 		const list = await rpc("admin_events");
-		if (!list.length) return box.replaceChildren(el("p", "muted", "Henüz etkinlik yok."));
+		if (!list.length) return box.replaceChildren(el("div", "empty", "Henüz etkinlik yok. Yukarıdan ilkini başlat."));
 		const status = { active: "Sürüyor", scheduled: "Planlandı", ended: "Bitti" };
-		box.replaceChildren(...list.map((e) => {
-			const it = el("div", "item");
-			const top = el("div", "top");
-			const p = e.params || {};
-			const mult = p.mult || p.golden_mult;
-			const title = el("b", null, (KIND_NAMES[e.kind] || e.kind) + (mult ? ` x${mult}` : ""));
-			title.append(el("span", "badge " + e.status, status[e.status] || e.status));
-			top.append(title, el("span", "meta", `${fmt(e.starts_at)} – ${fmt(e.ends_at)}`));
-			it.append(top);
-			if (e.note) it.append(el("div", "meta", e.note));
-			if (e.status !== "ended") {
-				const a = el("div", "actions");
-				const b = el("button", "danger", e.status === "active" ? "Şimdi bitir" : "İptal et");
-				b.onclick = async () => {
-					if (!confirm(e.status === "active" ? "Etkinlik şimdi bitsin mi?" : "Planlanan etkinlik silinsin mi?")) return;
-					try { await rpc("admin_event_end", { p_id: e.id }); loadEvents(); } catch (x) { alert(x.message); }
-				};
-				a.append(b); it.append(a);
+		const groups = [["active", "Süren"], ["scheduled", "Planlanan"], ["ended", "Geçmiş"]];
+		const out = [];
+		for (const [st, title] of groups) {
+			const rows = list.filter((e) => e.status === st);
+			if (!rows.length) continue;
+			out.push(el("div", "section-title", title));
+			for (const e of rows) {
+				const k = KINDS[e.kind];
+				const it = el("div", "list-item");
+				it.style.setProperty("--c", st === "ended" ? "var(--line2)" : (k ? k.color : "var(--accent)"));
+				const g = el("div", "grow");
+				const top = el("div", "top");
+				const t = el("b", null, evTitle(e.kind, multOf(e)));
+				t.append(el("span", "badge " + e.status, status[e.status] || e.status));
+				top.append(t, el("span", "meta", st === "active" ? `${left(e.ends_at)} kaldı` : st === "scheduled" ? `${left(e.starts_at)} sonra başlar` : ""));
+				g.append(top, el("div", "meta", `${fmt(e.starts_at)} – ${fmt(e.ends_at)}`));
+				if (e.note) g.append(el("div", "meta", "Not: " + e.note));
+				if (st !== "ended") {
+					const a = el("div", "actions");
+					const b = el("button", "soft-danger", st === "active" ? "Şimdi bitir" : "İptal et");
+					b.onclick = () => endEvent(e, loadEvents);
+					a.append(b); g.append(a);
+				}
+				it.append(evIcon(e.kind, 44), g);
+				out.push(it);
 			}
-			return it;
-		}));
+		}
+		box.replaceChildren(...out);
 	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
 }
 
@@ -345,51 +610,55 @@ async function searchPlayers() {
 	say("plMsg", "Aranıyor…");
 	try {
 		const list = await rpc("admin_players", { p_query: $("q").value.trim(), p_limit: 50 });
-		say("plMsg", list.length ? `${list.length} oyuncu` : "Bulunamadı.");
-		box.replaceChildren(...list.map(playerItem));
+		say("plMsg", list.length ? `${list.length} oyuncu` : "");
+		box.replaceChildren(...(list.length ? list.map(playerItem) : [el("div", "empty", "Bu aramayla oyuncu bulunamadı.")]));
 	} catch (e) { say("plMsg", e.message, "err"); }
 }
 
 function playerItem(p) {
-	const it = el("div", "item");
+	const it = el("div", "list-item");
+	it.style.setProperty("--c", p.banned ? "var(--bad)" : p.hidden ? "var(--gold)" : "var(--line2)");
+	const av = el("div", "avatar", (p.nickname || "?").slice(0, 1).toUpperCase());
+	const g = el("div", "grow");
 	const top = el("div", "top");
 	const name = el("b", null, p.nickname);
 	if (p.banned) name.append(el("span", "badge banned", "Yasaklı"));
-	if (p.hidden) name.append(el("span", "badge hidden", "Gizli"));
-	if (p.gc_linked) name.append(el("span", "badge", "Game Center"));
+	if (p.hidden) name.append(el("span", "badge hidden-b", "Gizli"));
+	if (p.gc_linked) name.append(el("span", "badge gc", "Game Center"));
 	top.append(name, el("span", "meta", p.public_id));
-	it.append(top);
+	g.append(top);
 	const sc = p.scores || {};
 	const scoreText = ["chapter", "tower", "sg", "boss"].filter((k) => sc[k] != null)
 		.map((k) => ({ chapter: "Bölüm", tower: "Kule", sg: "SG", boss: "Boss" })[k] + " " + Number(sc[k]).toLocaleString("tr-TR", { maximumFractionDigits: 0 })).join(" · ");
-	it.append(el("div", "meta", `Son görülme ${ago(p.last_seen_at)} · kayıt ${fmt(p.created_at)} · ${p.platform || "?"} ${p.app_version || ""}`));
-	it.append(el("div", "meta", scoreText || "Skor yok"));
-	if (p.reason) it.append(el("div", "meta", "Sebep: " + p.reason));
+	g.append(el("div", "meta", `Son görülme ${ago(p.last_seen_at)} · kayıt ${fmt(p.created_at)} · ${p.platform || "?"} ${p.app_version || ""}`));
+	g.append(el("div", "meta", scoreText || "Skor yok"));
+	if (p.reason) g.append(el("div", "meta", "Sebep: " + p.reason));
 	const a = el("div", "actions");
 	const act = (label, cls, fn) => { const b = el("button", cls, label); b.onclick = fn; a.append(b); };
 	const done = async (promise, okText) => {
-		try { const r = await promise; if (r && r.ok === false) return alert(errText(r)); say("plMsg", okText, "good"); searchPlayers(); }
-		catch (e) { alert(e.message); }
+		try { const r = await promise; if (r && r.ok === false) return toast(errText(r), "err"); toast(okText, "good"); searchPlayers(); }
+		catch (e) { toast(e.message, "err"); }
 	};
-	if (p.banned) act("Yasağı kaldır", "ok", () => done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: false, p_hidden: p.hidden, p_reason: null }), "Yasak kaldırıldı."));
-	else act("Yasakla", "danger", () => {
-		const why = prompt(`${p.nickname} yasaklansın mı? Skorları silinir ve sıralamaya giremez.\nSebep (oyuncuya gösterilir, boş bırakılabilir):`, "");
+	if (p.banned) act("Yasağı kaldır", "soft-ok", () => done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: false, p_hidden: p.hidden, p_reason: null }), "Yasak kaldırıldı."));
+	else act("Yasakla", "soft-danger", async () => {
+		const why = await ask(`${p.nickname} yasaklansın mı?`, "Skorları silinir ve sıralamaya giremez.", { yes: "Yasakla", danger: true, input: "" });
 		if (why === null) return;
 		done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: true, p_hidden: p.hidden, p_reason: why }), "Yasaklandı.");
 	});
-	act(p.hidden ? "Sıralamada göster" : "Sıralamada gizle", null, () => {
-		if (!p.hidden && !confirm(`${p.nickname} sıralamada gizlensin mi? Skorları silinir.`)) return;
+	act(p.hidden ? "Sıralamada göster" : "Sıralamada gizle", null, async () => {
+		if (!p.hidden && !await ask(`${p.nickname} gizlensin mi?`, "Sıralamada görünmez, skorları silinir.", { yes: "Gizle" })) return;
 		done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: p.banned, p_hidden: !p.hidden, p_reason: p.reason }), "Güncellendi.");
 	});
-	act("Adı sıfırla", null, () => {
-		if (!confirm(`"${p.nickname}" adı rastgele bir adla değiştirilsin mi?`)) return;
+	act("Adı sıfırla", null, async () => {
+		if (!await ask("Ad sıfırlansın mı?", `"${p.nickname}" rastgele bir adla değiştirilir.`, { yes: "Sıfırla" })) return;
 		done(rpc("admin_reset_nickname", { p_user: p.user_id }), "Ad sıfırlandı.");
 	});
-	act("Skorları sil", null, () => {
-		if (!confirm(`${p.nickname} oyuncusunun bütün skorları silinsin mi?`)) return;
+	act("Skorları sil", null, async () => {
+		if (!await ask("Skorlar silinsin mi?", `${p.nickname} oyuncusunun bütün sıralama skorları silinir.`, { yes: "Sil", danger: true })) return;
 		done(rpc("admin_delete_scores", { p_user: p.user_id, p_kind: null }), "Skorlar silindi.");
 	});
-	it.append(a);
+	g.append(a);
+	it.append(av, g);
 	return it;
 }
 
@@ -399,18 +668,18 @@ async function loadSettings() {
 	try {
 		settings = await rpc("admin_settings");
 		const cal = Number(settings.calendar_events ?? 1) !== 0;
-		$("calBtn").textContent = cal ? "Açık (kapat)" : "Kapalı (aç)";
-		$("calBtn").className = cal ? "ok" : "danger";
-		$("nickH").value = Math.round(Number(settings.nickname_change_sec ?? 86400) / 3600);
+		$("calBtn").classList.toggle("on", cal);
+		$("calText").textContent = cal ? "Açık" : "Kapalı (yalnız paneldeki etkinlikler)";
+		$("nickD").value = Math.round(Number(settings.nickname_change_sec ?? 86400) / 86400);
 		const words = await rpc("admin_words");
 		const modeName = { contains: "içinde", exact: "tam", allow: "izin" };
 		$("words").replaceChildren(...words.map((w) => {
-			const c = el("span", "chip", `${w.word} · ${modeName[w.mode] || w.mode}`);
-			const x = el("button", null, "×");
+			const c = el("span", "chip" + (w.mode === "allow" ? " allow" : ""), `${w.word} · ${modeName[w.mode] || w.mode}`);
+			const x = el("button", "ghost", "×");
 			x.title = "Sil";
 			x.onclick = async () => {
-				if (!confirm(`"${w.word}" listeden çıkarılsın mı?`)) return;
-				try { await rpc("admin_word_remove", { p_word: w.word, p_mode: w.mode }); loadSettings(); } catch (e) { alert(e.message); }
+				if (!await ask("Kelime silinsin mi?", `"${w.word}" listeden çıkarılır.`, { yes: "Sil" })) return;
+				try { await rpc("admin_word_remove", { p_word: w.word, p_mode: w.mode }); loadSettings(); } catch (e) { toast(e.message, "err"); }
 			};
 			c.append(x);
 			return c;
@@ -419,27 +688,28 @@ async function loadSettings() {
 }
 $("calBtn").onclick = async () => {
 	const cal = Number(settings.calendar_events ?? 1) !== 0;
-	if (!confirm(cal ? "Hafta sonu takvimi kapansın mı? (Yalnız paneldeki etkinlikler olur.)" : "Hafta sonu takvimi açılsın mı?")) return;
-	try { const r = await rpc("admin_setting_set", { p_key: "calendar_events", p_value: cal ? 0 : 1 }); if (!r.ok) return say("setMsg", errText(r), "err"); say("setMsg", "Kaydedildi.", "good"); loadSettings(); }
-	catch (e) { say("setMsg", e.message, "err"); }
+	if (!await ask(cal ? "Hafta sonu takvimi kapansın mı?" : "Hafta sonu takvimi açılsın mı?",
+		cal ? "Yalnız panelden başlattığın etkinlikler olur." : "Her hafta sonu otomatik etkinlik başlar.", { yes: cal ? "Kapat" : "Aç" })) return;
+	try { const r = await rpc("admin_setting_set", { p_key: "calendar_events", p_value: cal ? 0 : 1 }); if (!r.ok) return toast(errText(r), "err"); toast("Kaydedildi.", "good"); loadSettings(); }
+	catch (e) { toast(e.message, "err"); }
 };
 $("nickSave").onclick = async () => {
-	const h = Number($("nickH").value);
-	if (!(h >= 0)) return say("setMsg", "Geçersiz saat.", "err");
-	try { const r = await rpc("admin_setting_set", { p_key: "nickname_change_sec", p_value: Math.round(h * 3600) }); if (!r.ok) return say("setMsg", errText(r), "err"); say("setMsg", "Kaydedildi.", "good"); }
+	const d = Number($("nickD").value);
+	if (!(d >= 0)) return say("setMsg", "Geçersiz gün.", "err");
+	try { const r = await rpc("admin_setting_set", { p_key: "nickname_change_sec", p_value: Math.round(d * 86400) }); if (!r.ok) return say("setMsg", errText(r), "err"); say("setMsg", ""); toast("Kaydedildi.", "good"); }
 	catch (e) { say("setMsg", e.message, "err"); }
 };
 $("wordAdd").onclick = async () => {
 	try {
 		const r = await rpc("admin_word_add", { p_word: $("word").value, p_mode: $("wordMode").value });
 		if (!r.ok) return say("wordMsg", errText(r), "err");
-		$("word").value = ""; say("wordMsg", "Eklendi.", "good"); loadSettings();
+		$("word").value = ""; say("wordMsg", ""); toast("Eklendi.", "good"); loadSettings();
 	} catch (e) { say("wordMsg", e.message, "err"); }
 };
 
 $("resetBtn").onclick = async () => {
 	if ($("resetConfirm").value.trim() !== "SIFIRLA") return say("resetMsg", "Onay için kutuya SIFIRLA yaz.", "err");
-	if (!confirm("Bütün oyuncular silinecek ve oyun herkes için baştan başlayacak. Emin misin?")) return;
+	if (!await ask("Oyun sıfırlansın mı?", "Bütün oyuncular silinecek ve oyun herkes için baştan başlayacak. Geri alınamaz.", { yes: "Evet, sıfırla", danger: true })) return;
 	say("resetMsg", "Sıfırlanıyor…");
 	try {
 		const r = await rpc("admin_reset_game", { p_confirm: "SIFIRLA" });
@@ -450,24 +720,40 @@ $("resetBtn").onclick = async () => {
 };
 
 // --- işlem kaydı ---
+$("refreshLog").onclick = () => loadLog();
+function logDetail(a) {
+	const d = a.detail || {};
+	if (a.action === "event_save") return `${evTitle(d.kind, (d.params || {})[KINDS[d.kind] ? KINDS[d.kind].param : "mult"] ?? "")} · ${fmt(d.starts)} – ${fmt(d.ends)}`;
+	if (a.action === "setting_set") return `${d.key} = ${d.value}`;
+	if (a.action === "word_add" || a.action === "word_remove") return `${d.word} (${d.mode})`;
+	return null;
+}
 async function loadLog() {
 	const box = $("log");
 	box.replaceChildren(el("span", "muted", "Yükleniyor…"));
 	try {
 		const list = await rpc("admin_audit_log", { p_limit: 100 });
-		if (!list.length) return box.replaceChildren(el("p", "muted", "Kayıt yok."));
-		const names = { set_flags: "Oyuncu bayrağı", delete_scores: "Skor silme", reset_nickname: "Ad sıfırlama", event_save: "Etkinlik kaydı",
-			event_end: "Etkinlik bitirme", setting_set: "Ayar", word_add: "Kelime ekleme", word_remove: "Kelime silme", reset_game: "Oyunu sıfırlama" };
-		box.replaceChildren(...list.map((a) => {
-			const it = el("div", "item");
+		if (!list.length) return box.replaceChildren(el("div", "empty", "Henüz işlem yok."));
+		const names = { set_flags: ["Oyuncu bayrağı", "#f9c22b"], delete_scores: ["Skor silme", "#f05d5d"], reset_nickname: ["Ad sıfırlama", "#5ab4ff"],
+			event_save: ["Etkinlik kaydı", "#3fcf7f"], event_end: ["Etkinlik bitirme", "#ff7a5c"], setting_set: ["Ayar", "#8b5cf6"],
+			word_add: ["Kelime ekleme", "#a39bc2"], word_remove: ["Kelime silme", "#a39bc2"], reset_game: ["Oyunu sıfırlama", "#f05d5d"] };
+		box.replaceChildren(...list.map((a, i) => {
+			const [n, c] = names[a.action] || [a.action, "#463a70"];
+			const it = el("div", "list-item"); it.style.setProperty("--c", c);
+			if (i === 0) it.style.marginTop = "0";
+			const g = el("div", "grow");
 			const top = el("div", "top");
-			top.append(el("b", null, names[a.action] || a.action), el("span", "meta", `${fmt(a.at)} · ${a.admin || "?"}`));
-			it.append(top, el("pre", null, JSON.stringify(a.detail)));
+			top.append(el("b", null, n), el("span", "meta", `${fmt(a.at)} · ${a.admin || "?"}`));
+			g.append(top);
+			const nice = logDetail(a);
+			if (nice) g.append(el("div", "meta", nice)); else g.append(el("pre", null, JSON.stringify(a.detail)));
+			it.append(g);
 			return it;
 		}));
 	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
 }
 
+$("loginLogo").src = $("brandLogo").src = ICONS.hero;
 start();
 </script>
 </body>
