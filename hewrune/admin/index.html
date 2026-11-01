@@ -349,6 +349,16 @@ function left(ts) {
 	const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
 	return d ? `${d} gün ${h} sa` : h ? `${h} sa ${m} dk` : `${m} dk`;
 }
+// Tur 86: oyunun hafta sonu takvimi (economy.json > weekend_event: TR saati, cumartesi-pazar, haftalar sırayla boss_x2 / golden_tree).
+function weekendNow() {
+	const day = Math.floor((Date.now() / 1000 + 3 * 3600) / 86400);
+	const wd = ((day + 3) % 7 + 7) % 7;
+	if (wd !== 5 && wd !== 6) return null;
+	const rot = ["boss_x2", "golden_tree"];
+	const kind = rot[((Math.floor((day + 3) / 7)) % rot.length + rot.length) % rot.length];
+	const endDay = day + (6 - wd) + 1;
+	return { kind, ends: new Date((endDay * 86400 - 3 * 3600) * 1000) };
+}
 function multOf(e) { const k = KINDS[e.kind]; const p = e.params || {}; return k ? Number(p[k.param] ?? k.def) : null; }
 function evTitle(kind, m) { const k = KINDS[kind]; return k ? `${m}x ${k.name}` : kind; }
 function evIcon(kind, size) {
@@ -493,6 +503,16 @@ async function loadLiveNow() {
 			const b = el("button", "soft-danger fit", "Şimdi bitir");
 			b.onclick = () => endEvent(act, () => loadStats());
 			wrap.append(evIcon(act.kind, 64), info, b);
+		} else if (weekendNow() && Number((await rpc("admin_settings")).calendar_events ?? 1) !== 0) {
+			// Tur 86: hafta sonu takvimi etkinliği oyunda sürüyor (oyun aynı formülü kullanır: scripts/systems/weekend_event.gd)
+			const w = weekendNow();
+			const k = KINDS[w.kind];
+			const info = el("div", "info");
+			const t = el("h2", null, evTitle(w.kind, k.def)); t.append(el("span", "badge active", "Hafta sonu takvimi"));
+			info.append(t, el("div", "muted", k.desc(k.def) + ` Bitmesine ${left(w.ends.toISOString())}. Panelden etkinlik başlatırsan onun yerine geçer; kapatmak için Ayarlar > Hafta sonu takvimi.`));
+			const b = el("button", "primary fit", "Etkinlik başlat");
+			b.onclick = () => openTab("events");
+			wrap.append(evIcon(w.kind, 64), info, b);
 		} else {
 			const info = el("div", "info");
 			info.append(el("h2", null, "Panel etkinliği yok"),
