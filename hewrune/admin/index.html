@@ -187,6 +187,7 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 			<button data-tab="events"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg><span>Etkinlikler</span></button>
 			<button data-tab="players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/><path d="M16 4.5a4 4 0 0 1 0 7"/><path d="M19 14.5c1.8 1 3 3.1 3 5.5"/></svg><span>Oyuncular</span></button>
 			<button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Ayarlar</span></button>
+			<button data-tab="logs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span>Loglar</span></button>
 			<button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg><span>İşlem kaydı</span></button>
 		</nav>
 		<div class="side-foot">
@@ -291,6 +292,21 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 		</section>
 
 		<!-- İŞLEM KAYDI -->
+		<!-- LOGLAR (2026-11-02, supabase/migrations/0012_client_logs.sql) -->
+		<section data-page="logs" class="hidden">
+			<div class="page-head"><div><h1>Loglar</h1><p>Hatalar, çökmeler ve oyuncuların nerede bıraktığı</p></div><button id="refreshLogs" class="ghost">Yenile</button></div>
+			<div class="card">
+				<div class="row">
+					<select id="logKind" style="flex:1 1 160px"><option value="error">Hatalar</option><option value="crash">Çökmeler</option><option value="event">Olaylar</option></select>
+					<select id="logDays" style="flex:1 1 140px"><option value="1">Son 24 saat</option><option value="7" selected>Son 7 gün</option><option value="30">Son 30 gün</option></select>
+				</div>
+				<div class="msg" id="logsMsg"></div>
+				<div id="logStats"></div>
+				<div id="logGroups"></div>
+			</div>
+			<div class="card"><h3 style="margin:0 0 6px">Oyuncular nerede bırakıyor</h3><p class="muted" style="margin:0 0 10px">Her oyuncunun ulaştığı en yüksek bölüm</p><div id="logChapters"></div></div>
+		</section>
+
 		<section data-page="log" class="hidden">
 			<div class="page-head"><div><h1>İşlem kaydı</h1><p>Paneldeki son 100 işlem</p></div><button id="refreshLog" class="ghost">Yenile</button></div>
 			<div class="card"><div id="log"></div></div>
@@ -467,7 +483,7 @@ document.querySelectorAll("#tabs button").forEach((b) => b.onclick = () => openT
 function openTab(name) {
 	document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
 	document.querySelectorAll("[data-page]").forEach((p) => p.classList.toggle("hidden", p.dataset.page !== name));
-	({ overview: loadStats, events: loadEvents, players: () => {}, settings: loadSettings, log: loadLog })[name]();
+	({ overview: loadStats, events: loadEvents, players: () => {}, settings: loadSettings, logs: loadLogs, log: loadLog })[name]();
 	window.scrollTo(0, 0);
 }
 
@@ -771,6 +787,79 @@ async function loadLog() {
 			return it;
 		}));
 	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
+}
+
+// --- loglar ---
+$("refreshLogs").onclick = () => loadLogs();
+$("logKind").onchange = $("logDays").onchange = () => loadLogs();
+const KIND_COL = { error: "#f9c22b", crash: "#f05d5d", event: "#5ab4ff" };
+const EVENT_NAMES = { session: "Oturum", chapter: "Bölüme ulaştı", ad: "Reklam izlendi", purchase: "Satın alma", rebirth: "Yeniden doğuş", boss: "Boss savaşı", tower: "Kule koşusu" };
+async function loadLogs() {
+	const kind = $("logKind").value, days = Number($("logDays").value);
+	say("logsMsg", "Yükleniyor…");
+	try {
+		const st = await rpc("admin_log_stats", { p_days: days });
+		$("logStats").replaceChildren(el("div", "meta", `${st.players} oyuncu · ${st.errors} hata · ${st.crashes} çökme`));
+		renderChapters(st.chapters || []);
+		if (kind === "event") {
+			say("logsMsg", "");
+			const ev = st.events || [];
+			$("logGroups").replaceChildren(...(ev.length ? ev.map((e) => {
+				const it = el("div", "list-item"); it.style.setProperty("--c", KIND_COL.event);
+				const g = el("div", "grow"); const top = el("div", "top");
+				top.append(el("b", null, (EVENT_NAMES[e.name] || e.name) + (e.key ? " · " + e.key : "")), el("span", "meta", `${e.count} kez · ${e.users} oyuncu`));
+				g.append(top); it.append(g); return it;
+			}) : [el("div", "empty", "Bu aralıkta olay yok.")]));
+			return;
+		}
+		const groups = await rpc("admin_log_groups", { p_kind: kind, p_days: days });
+		say("logsMsg", groups.length ? `${groups.length} farklı ${kind === "crash" ? "çökme" : "hata"}` : "");
+		$("logGroups").replaceChildren(...(groups.length ? groups.map(logGroupItem) : [el("div", "empty", kind === "crash" ? "Çökme yok." : "Hata yok.")]));
+	} catch (e) {
+		say("logsMsg", /log_/.test(e.message) ? "Log tablosu yok: supabase/migrations/0012_client_logs.sql çalıştırılmalı." : e.message, "err");
+	}
+}
+function logGroupItem(gr) {
+	const it = el("div", "list-item"); it.style.setProperty("--c", KIND_COL[gr.kind] || "var(--line2)");
+	const g = el("div", "grow"); const top = el("div", "top");
+	top.append(el("b", null, gr.name), el("span", "meta", `${gr.count} kez · ${gr.users} oyuncu · son ${fmt(gr.last_at)}`));
+	g.append(top, el("pre", null, gr.message || "-"));
+	g.append(el("div", "meta", `Sürüm: ${(gr.versions || []).join(", ") || "?"} · ${(gr.platforms || []).join(", ")} · ilk ${fmt(gr.first_at)}`));
+	const detail = el("div");
+	const a = el("div", "actions");
+	const show = el("button", "ghost", "Son kayıtlar");
+	show.onclick = async () => {
+		detail.replaceChildren(el("span", "muted", "Yükleniyor…"));
+		try {
+			const rows = await rpc("admin_log_list", { p_sig: gr.sig, p_limit: 20 });
+			detail.replaceChildren(...rows.map((r) => {
+				const d = el("div", "meta");
+				d.append(el("div", null, `${fmt(r.at)} · ${r.nickname || "?"} ${r.public_id || ""} · ${r.device || ""} · ${r.app_version || ""}`));
+				d.append(el("pre", null, JSON.stringify(r.detail)));
+				return d;
+			}));
+		} catch (e) { detail.replaceChildren(el("span", "msg err", e.message)); }
+	};
+	const clear = el("button", "danger", "Çözüldü (sil)");
+	clear.onclick = async () => {
+		if (!confirm("Bu gruptaki tüm kayıtlar silinsin mi?")) return;
+		try { await rpc("admin_log_clear", { p_sig: gr.sig }); toast("Silindi", "good"); loadLogs(); } catch (e) { toast(e.message, "err"); }
+	};
+	a.append(show, clear);
+	g.append(a, detail);
+	it.append(g);
+	return it;
+}
+function renderChapters(list) {
+	if (!list.length) return $("logChapters").replaceChildren(el("div", "empty", "Henüz veri yok."));
+	const total = list.reduce((s, c) => s + Number(c.users), 0), max = Math.max(...list.map((c) => Number(c.users)));
+	$("logChapters").replaceChildren(...list.map((c) => {
+		const row = el("div", "row"); row.style.alignItems = "center"; row.style.margin = "4px 0";
+		const lab = el("span", "meta", `Bölüm ${c.chapter}`); lab.style.flex = "0 0 80px";
+		const bar = el("div"); bar.style.cssText = `flex:1 1 auto;height:14px;border-radius:7px;background:var(--accent);max-width:${Math.max(4, 100 * c.users / max)}%`;
+		const n = el("span", "meta", `${c.users} (${Math.round(100 * c.users / total)}%)`); n.style.flex = "0 0 90px"; n.style.textAlign = "right";
+		row.append(lab, bar, n); return row;
+	}));
 }
 
 $("loginLogo").src = $("brandLogo").src = ICONS.hero;
