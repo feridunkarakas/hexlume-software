@@ -191,6 +191,7 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 			<button data-tab="players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/><path d="M16 4.5a4 4 0 0 1 0 7"/><path d="M19 14.5c1.8 1 3 3.1 3 5.5"/></svg><span>Oyuncular</span></button>
 			<button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Ayarlar</span></button>
 			<button data-tab="mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg><span>Kodlar</span></button>
+			<button data-tab="feedback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg><span>Geri bildirim</span><b class="badge hidden" id="fbBadge" style="margin-left:auto">0</b></button>
 			<button data-tab="logs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span>Loglar</span></button>
 			<button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg><span>İşlem kaydı</span></button>
 		</nav>
@@ -318,6 +319,18 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 				<div class="msg" id="pcMsg"></div>
 			</div>
 			<div class="card"><h2>Kodlar</h2><div id="promoList"></div></div>
+		</section>
+
+		<!-- GERİ BİLDİRİM (2026-11-03, supabase/migrations/0015_feedback.sql; oyunda Profil > Ayarlar > Hata / Öneri > Bildir) -->
+		<section data-page="feedback" class="hidden">
+			<div class="page-head"><div><h1>Geri bildirim</h1><p>Oyuncuların oyundan gönderdiği hata ve öneriler</p></div><button id="refreshFb" class="ghost">Yenile</button></div>
+			<div class="card">
+				<div class="row" style="align-items:center">
+					<div class="seg" id="fbStatus" style="flex:2 1 300px"><button data-s="new" class="on">Yeni</button><button data-s="read">Okundu</button><button data-s="done">Çözüldü</button><button data-s="">Hepsi</button></div>
+					<div class="seg" id="fbKind" style="flex:1 1 260px;justify-content:flex-end"><button data-k="" class="on">Tümü</button><button data-k="bug">Hata</button><button data-k="idea">Öneri</button><button data-k="other">Diğer</button></div>
+				</div>
+				<div id="fbList" style="margin-top:14px"></div>
+			</div>
 		</section>
 
 		<!-- LOGLAR (2026-11-02, supabase/migrations/0012_client_logs.sql) -->
@@ -540,6 +553,7 @@ async function start() {
 		$("login").classList.add("hidden");
 		$("app").classList.remove("hidden");
 		openTab("overview");
+		rpc("admin_feedback_list", { p_status: "new", p_limit: 1 }).then((r) => fbBadge(r.counts || {})).catch(() => {});
 	} catch (e) {
 		// Yalnız oturum kesin geçersizse çıkış; bağlantı / sunucu hatasında oturum korunur, sayfa yenilenince tekrar denenir.
 		if (e instanceof AuthError) { say("loginMsg", "Oturum süresi doldu, tekrar giriş yap.", "err"); logout(false); }
@@ -566,7 +580,7 @@ document.querySelectorAll("#tabs button").forEach((b) => b.onclick = () => openT
 function openTab(name) {
 	document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
 	document.querySelectorAll("[data-page]").forEach((p) => p.classList.toggle("hidden", p.dataset.page !== name));
-	({ overview: loadStats, events: loadEvents, players: () => {}, settings: loadSettings, logs: loadLogs, mail: loadMail, log: loadLog })[name]();
+	({ overview: loadStats, events: loadEvents, players: () => {}, settings: loadSettings, logs: loadLogs, mail: loadMail, feedback: loadFeedback, log: loadLog })[name]();
 	window.scrollTo(0, 0);
 }
 
@@ -952,6 +966,61 @@ async function loadMail() {
 			a.append(cp, tg); g.append(a); it.append(g); return it;
 		}) : [el("div", "empty", "Henüz kod yok.")]));
 	} catch (e) { $("promoList").replaceChildren(el("div", "msg err", mailErr(e))); }
+}
+
+// --- geri bildirim (2026-11-03, 0015_feedback.sql) ---
+const FB_KIND = { bug: ["Hata", "#f05d5d"], idea: ["Öneri", "#f9c22b"], other: ["Diğer", "#5ab4ff"] };
+const FB_STATUS = { new: "Yeni", read: "Okundu", done: "Çözüldü" };
+let fbStatus = "new", fbKind = "";
+document.querySelectorAll("#fbStatus button").forEach((b) => b.onclick = () => {
+	fbStatus = b.dataset.s; document.querySelectorAll("#fbStatus button").forEach((x) => x.classList.toggle("on", x === b)); loadFeedback();
+});
+document.querySelectorAll("#fbKind button").forEach((b) => b.onclick = () => {
+	fbKind = b.dataset.k; document.querySelectorAll("#fbKind button").forEach((x) => x.classList.toggle("on", x === b)); loadFeedback();
+});
+$("refreshFb").onclick = () => loadFeedback();
+function fbBadge(counts) {
+	const n = (counts && counts.new) || 0;
+	$("fbBadge").textContent = n; $("fbBadge").classList.toggle("hidden", !n);
+	document.querySelectorAll("#fbStatus button").forEach((b) => {
+		const c = b.dataset.s ? (counts[b.dataset.s] || 0) : Object.values(counts).reduce((a, x) => a + x, 0);
+		b.textContent = `${b.dataset.s ? FB_STATUS[b.dataset.s] : "Hepsi"} (${c})`;
+	});
+}
+async function setFb(id, status) {
+	try { await rpc("admin_feedback_set_status", { p_id: id, p_status: status }); loadFeedback(); } catch (e) { toast(e.message, "err"); }
+}
+async function loadFeedback() {
+	const box = $("fbList");
+	box.replaceChildren(el("span", "muted", "Yükleniyor…"));
+	try {
+		const r = await rpc("admin_feedback_list", { p_status: fbStatus || null, p_limit: 300 });
+		fbBadge(r.counts || {});
+		const items = (r.items || []).filter((f) => !fbKind || f.kind === fbKind);
+		if (!items.length) return box.replaceChildren(el("div", "empty", fbStatus === "new" ? "Yeni mesaj yok." : "Mesaj yok."));
+		box.replaceChildren(...items.map((f, i) => {
+			const [kn, kc] = FB_KIND[f.kind] || [f.kind, "#463a70"];
+			const it = el("div", "list-item"); it.style.setProperty("--c", kc);
+			if (i === 0) it.style.marginTop = "0";
+			const g = el("div", "grow"); const top = el("div", "top");
+			top.append(el("b", null, kn), el("span", "meta", `${f.nickname || "?"} ${f.public_id || ""} · ${fmt(f.at)} · ${FB_STATUS[f.status] || f.status}`));
+			const msg = el("div", null, f.message); msg.style.cssText = "white-space:pre-wrap;margin:6px 0;line-height:1.45";
+			g.append(top, msg, el("div", "meta", `Bölüm ${f.chapter ?? "?"} · ${f.device || f.platform || "?"} · ${f.app_version || ""}`));
+			const a = el("div", "actions");
+			const add = (label, cls, fn) => { const b = el("button", cls, label); b.onclick = fn; a.append(b); };
+			if (f.status !== "read") add("Okundu", "ghost", () => setFb(f.id, "read"));
+			if (f.status !== "done") add("Çözüldü", "ghost", () => setFb(f.id, "done"));
+			if (f.status !== "new") add("Yeniye al", "ghost", () => setFb(f.id, "new"));
+			if (f.public_id) add("Kimliği kopyala", "ghost", () => copyCode(f.public_id));
+			add("Sil", "danger", async () => {
+				if (!(await ask("Mesaj silinsin mi?", f.message.slice(0, 120), { yes: "Sil", danger: true }))) return;
+				try { await rpc("admin_feedback_delete", { p_id: f.id }); toast("Silindi", "good"); loadFeedback(); } catch (e) { toast(e.message, "err"); }
+			});
+			g.append(a); it.append(g); return it;
+		}));
+	} catch (e) {
+		box.replaceChildren(el("div", "msg err", /admin_feedback/.test(e.message) ? "Geri bildirim tablosu yok: supabase/migrations/0015_feedback.sql çalıştırılmalı." : e.message));
+	}
 }
 
 // --- loglar ---
