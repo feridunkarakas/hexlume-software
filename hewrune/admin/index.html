@@ -76,6 +76,9 @@ main { padding: 28px 32px 60px; max-width: 1080px; width: 100%; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
 .row > * { flex: 1 1 160px; }
 .row > .fit { flex: 0 0 auto; }
+textarea { width: 100%; min-height: 70px; resize: vertical; font: inherit; color: inherit; background: var(--panel2); border: 1px solid var(--line2); border-radius: 10px; padding: 10px; }
+.grant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.grant-grid label { margin: 0 0 4px; font-size: 12px; }
 
 /* özet */
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
@@ -187,6 +190,7 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 			<button data-tab="events"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg><span>Etkinlikler</span></button>
 			<button data-tab="players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/><path d="M16 4.5a4 4 0 0 1 0 7"/><path d="M19 14.5c1.8 1 3 3.1 3 5.5"/></svg><span>Oyuncular</span></button>
 			<button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Ayarlar</span></button>
+			<button data-tab="mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg><span>Posta</span></button>
 			<button data-tab="logs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span>Loglar</span></button>
 			<button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg><span>İşlem kaydı</span></button>
 		</nav>
@@ -292,6 +296,47 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 		</section>
 
 		<!-- İŞLEM KAYDI -->
+		<!-- POSTA (2026-11-03, supabase/migrations/0014_mailbox.sql) -->
+		<section data-page="mail" class="hidden">
+			<div class="page-head"><div><h1>Posta</h1><p>Oyunculara ödül / duyuru gönder, promosyon kodu oluştur</p></div><button id="refreshMail" class="ghost">Yenile</button></div>
+			<div class="card">
+				<h2>Mesaj gönder</h2>
+				<p class="sub">Oyuncunun Posta Kutusu'na düşer; ödülü kendisi "Al" ile alır (her mesaj bir kez). Ödül boşsa duyuru olur.</p>
+				<div class="row">
+					<div><label for="mlTo">Kime</label><select id="mlTo"><option value="all">Herkese</option><option value="one">Tek oyuncu</option></select></div>
+					<div><label for="mlPid">Oyuncu kimliği</label><input id="mlPid" placeholder="RH-XXXXXX" maxlength="9" disabled></div>
+					<div><label for="mlDays">Kaç gün dursun (0 = süresiz)</label><input id="mlDays" type="number" min="0" max="365" value="30"></div>
+				</div>
+				<label for="mlTitle">Başlık</label><input id="mlTitle" maxlength="80" placeholder="ör. Bakım hediyesi">
+				<label for="mlBody">Metin</label><textarea id="mlBody" maxlength="600" placeholder="İsteğe bağlı"></textarea>
+				<label>Ödül</label><div class="grant-grid" id="mlGrant"></div>
+				<div class="row" style="margin-top:16px;align-items:center">
+					<p class="muted small" style="margin:0;flex:3 1 260px" id="mlPreview"></p>
+					<button class="primary fit" id="mlSend">Gönder</button>
+				</div>
+				<div class="msg" id="mlMsg"></div>
+			</div>
+			<div class="card"><h2>Gönderilenler</h2><div id="mailList"></div></div>
+			<div class="card">
+				<h2>Promosyon kodu oluştur</h2>
+				<p class="sub">Oyuncu kodu Posta Kutusu'nun altındaki alana yazar; ödül posta kutusuna mesaj olarak düşer. Her oyuncu bir kez kullanabilir.</p>
+				<div class="row">
+					<div><label for="pcCode">Kod (A-Z, 0-9, _ -)</label><input id="pcCode" maxlength="24" placeholder="ör. HEWRUNE2026" style="text-transform:uppercase"></div>
+					<div><label for="pcMax">Kullanım sınırı (0 = sınırsız)</label><input id="pcMax" type="number" min="0" value="0"></div>
+					<div><label for="pcDays">Kaç gün geçerli (0 = süresiz)</label><input id="pcDays" type="number" min="0" max="365" value="30"></div>
+				</div>
+				<label for="pcTitle">Mesaj başlığı</label><input id="pcTitle" maxlength="80" placeholder="ör. Promosyon hediyesi">
+				<label for="pcBody">Mesaj metni</label><textarea id="pcBody" maxlength="600" placeholder="İsteğe bağlı"></textarea>
+				<label>Ödül</label><div class="grant-grid" id="pcGrant"></div>
+				<div class="row" style="margin-top:16px;align-items:center">
+					<p class="muted small" style="margin:0;flex:3 1 260px" id="pcPreview"></p>
+					<button class="primary fit" id="pcCreate">Kodu oluştur</button>
+				</div>
+				<div class="msg" id="pcMsg"></div>
+			</div>
+			<div class="card"><h2>Promosyon kodları</h2><div id="promoList"></div></div>
+		</section>
+
 		<!-- LOGLAR (2026-11-02, supabase/migrations/0012_client_logs.sql) -->
 		<section data-page="logs" class="hidden">
 			<div class="page-head"><div><h1>Loglar</h1><p>Oturumlar, hatalar, çökmeler ve oyuncuların nerede bıraktığı</p></div><button id="refreshLogs" class="ghost">Yenile</button></div>
@@ -483,7 +528,7 @@ document.querySelectorAll("#tabs button").forEach((b) => b.onclick = () => openT
 function openTab(name) {
 	document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
 	document.querySelectorAll("[data-page]").forEach((p) => p.classList.toggle("hidden", p.dataset.page !== name));
-	({ overview: loadStats, events: loadEvents, players: () => {}, settings: loadSettings, logs: loadLogs, log: loadLog })[name]();
+	({ overview: loadStats, events: loadEvents, players: () => {}, settings: loadSettings, logs: loadLogs, mail: loadMail, log: loadLog })[name]();
 	window.scrollTo(0, 0);
 }
 
@@ -787,6 +832,111 @@ async function loadLog() {
 			return it;
 		}));
 	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
+}
+
+// --- posta (2026-11-03, 0014_mailbox.sql) ---
+// Ödül biçimi oyunla aynı (data/shop.json): tek parça {type, amount} ya da {type: "bundle", parts: [...]}.
+const GRANT_KINDS = [["diamonds", "Elmas"], ["stones", "Yükseltme Taşı"], ["ench_stones", "Efsun Taşı"], ["keys", "Boss Anahtarı"],
+	["premium_keys", "Premium Anahtar"], ["tower_tickets", "Kule Bileti"], ["pet_egg", "Pet Yumurtası"]];
+const GRANT_NAME = Object.fromEntries(GRANT_KINDS);
+function buildGrantInputs(box, onChange) {
+	box.replaceChildren(...GRANT_KINDS.map(([k, label]) => {
+		const d = el("div"); const l = el("label", null, label); const i = el("input");
+		i.type = "number"; i.min = "0"; i.max = "100000"; i.value = "0"; i.dataset.kind = k; i.oninput = onChange;
+		d.append(l, i); return d;
+	}));
+}
+function readGrant(box) {
+	const parts = [...box.querySelectorAll("input")].map((i) => ({ type: i.dataset.kind, amount: Math.floor(Number(i.value) || 0) })).filter((p) => p.amount > 0);
+	if (!parts.length) return null;
+	return parts.length === 1 ? parts[0] : { type: "bundle", parts };
+}
+function grantText(g) {
+	if (!g) return "ödülsüz";
+	const parts = g.type === "bundle" ? g.parts : [g];
+	return parts.map((p) => `${Number(p.amount).toLocaleString("tr-TR")} ${GRANT_NAME[p.type] || p.type}`).join(" + ");
+}
+function mailPreview() {
+	const one = $("mlTo").value === "one";
+	$("mlPid").disabled = !one;
+	$("mlPreview").textContent = `${one ? ($("mlPid").value.trim().toUpperCase() || "RH-?") : "Herkese"}: ${grantText(readGrant($("mlGrant")))}`;
+}
+function promoPreview() {
+	$("pcPreview").textContent = `${$("pcCode").value.trim().toUpperCase() || "KOD"}: ${grantText(readGrant($("pcGrant")))}`;
+}
+buildGrantInputs($("mlGrant"), mailPreview);
+buildGrantInputs($("pcGrant"), promoPreview);
+$("mlTo").onchange = $("mlPid").oninput = mailPreview;
+$("pcCode").oninput = promoPreview;
+$("refreshMail").onclick = () => loadMail();
+const MAIL_ERR = { player_not_found: "Bu kimlikte oyuncu yok.", bad_grant: "Ödül geçersiz.", bad_code: "Kod 3-24 karakter olmalı: A-Z, 0-9, _ ve -.", exists: "Bu kod zaten var." };
+function mailErr(e) {
+	return /mail|promo/.test(e.message) && /function|does not exist|404/.test(e.message) ? "Posta tabloları yok: supabase/migrations/0014_mailbox.sql çalıştırılmalı." : e.message;
+}
+$("mlSend").onclick = async () => {
+	const one = $("mlTo").value === "one", pid = $("mlPid").value.trim().toUpperCase(), title = $("mlTitle").value.trim();
+	const grant = readGrant($("mlGrant"));
+	if (!title) return say("mlMsg", "Başlık yaz.", "err");
+	if (one && !/^RH-[A-Z0-9]{6}$/.test(pid)) return say("mlMsg", "Oyuncu kimliği RH-XXXXXX biçiminde olmalı.", "err");
+	if (!confirm(`${one ? pid : "TÜM oyunculara"} gönderilsin mi?\n\n${title}\nÖdül: ${grantText(grant)}`)) return;
+	say("mlMsg", "Gönderiliyor…");
+	try {
+		const r = await rpc("admin_mail_send", { p_public_id: one ? pid : null, p_title: title, p_body: $("mlBody").value, p_grant: grant, p_days: Number($("mlDays").value) || 0 });
+		if (!r.ok) return say("mlMsg", MAIL_ERR[r.error] || r.error, "err");
+		say("mlMsg", "Gönderildi. Oyuncular en geç 5 dakika içinde görür.", "good");
+		$("mlTitle").value = $("mlBody").value = "";
+		buildGrantInputs($("mlGrant"), mailPreview); mailPreview();
+		loadMail();
+	} catch (e) { say("mlMsg", mailErr(e), "err"); }
+};
+$("pcCreate").onclick = async () => {
+	const code = $("pcCode").value.trim().toUpperCase(), title = $("pcTitle").value.trim(), grant = readGrant($("pcGrant"));
+	if (!/^[A-Z0-9_-]{3,24}$/.test(code)) return say("pcMsg", MAIL_ERR.bad_code, "err");
+	if (!title) return say("pcMsg", "Mesaj başlığı yaz.", "err");
+	if (!grant) return say("pcMsg", "En az bir ödül gir.", "err");
+	say("pcMsg", "Oluşturuluyor…");
+	try {
+		const r = await rpc("admin_promo_create", { p_code: code, p_title: title, p_body: $("pcBody").value, p_grant: grant,
+			p_max_uses: Number($("pcMax").value) || null, p_days: Number($("pcDays").value) || null });
+		if (!r.ok) return say("pcMsg", MAIL_ERR[r.error] || r.error, "err");
+		say("pcMsg", `${r.code} oluşturuldu.`, "good");
+		$("pcCode").value = $("pcTitle").value = $("pcBody").value = "";
+		buildGrantInputs($("pcGrant"), promoPreview); promoPreview();
+		loadMail();
+	} catch (e) { say("pcMsg", mailErr(e), "err"); }
+};
+async function loadMail() {
+	mailPreview(); promoPreview();
+	try {
+		const [mails, codes] = await Promise.all([rpc("admin_mail_list", { p_limit: 50 }), rpc("admin_promo_list", {})]);
+		$("mailList").replaceChildren(...(mails.length ? mails.map((m) => {
+			const it = el("div", "list-item"); it.style.setProperty("--c", m.grant ? "#f9c22b" : "#5ab4ff");
+			const g = el("div", "grow"); const top = el("div", "top");
+			top.append(el("b", null, m.title), el("span", "meta", `${m.to_public_id ? (m.to_nickname || "?") + " " + m.to_public_id : "Herkese"} · ${m.claims} alan`));
+			g.append(top, el("div", "meta", `${grantText(m.grant)} · ${fmt(m.created_at)}${m.expires_at ? " · bitiş " + fmt(m.expires_at) : ""}`));
+			if (m.body) g.append(el("div", "meta", m.body));
+			const a = el("div", "actions"); const del = el("button", "danger", "Sil");
+			del.onclick = async () => {
+				if (!confirm("Mesaj silinsin mi? Henüz almayan oyuncular artık göremez.")) return;
+				try { await rpc("admin_mail_delete", { p_id: m.id }); toast("Silindi", "good"); loadMail(); } catch (e) { toast(e.message, "err"); }
+			};
+			a.append(del); g.append(a); it.append(g); return it;
+		}) : [el("div", "empty", "Henüz mesaj gönderilmedi.")]));
+		$("promoList").replaceChildren(...(codes.length ? codes.map((c) => {
+			const it = el("div", "list-item"); it.style.setProperty("--c", c.active ? "#5fe08a" : "var(--line2)");
+			const g = el("div", "grow"); const top = el("div", "top");
+			top.append(el("b", null, c.code), el("span", "meta", `${c.uses}${c.max_uses ? " / " + c.max_uses : ""} kullanım · ${c.active ? "açık" : "kapalı"}`));
+			g.append(top, el("div", "meta", `${c.title} · ${grantText(c.grant)}${c.expires_at ? " · bitiş " + fmt(c.expires_at) : " · süresiz"}`));
+			const a = el("div", "actions"); const tg = el("button", c.active ? "danger" : "ghost", c.active ? "Kapat" : "Aç");
+			tg.onclick = async () => {
+				try { await rpc("admin_promo_set_active", { p_code: c.code, p_active: !c.active }); loadMail(); } catch (e) { toast(e.message, "err"); }
+			};
+			a.append(tg); g.append(a); it.append(g); return it;
+		}) : [el("div", "empty", "Henüz kod yok.")]));
+	} catch (e) {
+		$("mailList").replaceChildren(el("div", "msg err", mailErr(e)));
+		$("promoList").replaceChildren();
+	}
 }
 
 // --- loglar ---
