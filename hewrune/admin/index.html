@@ -190,7 +190,7 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 			<button data-tab="events"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg><span>Etkinlikler</span></button>
 			<button data-tab="players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/><path d="M16 4.5a4 4 0 0 1 0 7"/><path d="M19 14.5c1.8 1 3 3.1 3 5.5"/></svg><span>Oyuncular</span></button>
 			<button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Ayarlar</span></button>
-			<button data-tab="mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg><span>Posta</span></button>
+			<button data-tab="mail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg><span>Kodlar</span></button>
 			<button data-tab="logs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span>Loglar</span></button>
 			<button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg><span>İşlem kaydı</span></button>
 		</nav>
@@ -296,45 +296,28 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 		</section>
 
 		<!-- İŞLEM KAYDI -->
-		<!-- POSTA (2026-11-03, supabase/migrations/0014_mailbox.sql) -->
+		<!-- PROMOSYON KODLARI (2026-11-03, supabase/migrations/0014_mailbox.sql; Feridun: panelden tek oyuncuya / herkese doğrudan ödül
+		     gönderilmez, yalnız kod oluşturulur, kod paylaşılır, kodu giren ödülü alır) -->
 		<section data-page="mail" class="hidden">
-			<div class="page-head"><div><h1>Posta</h1><p>Oyunculara ödül / duyuru gönder, promosyon kodu oluştur</p></div><button id="refreshMail" class="ghost">Yenile</button></div>
+			<div class="page-head"><div><h1>Promosyon kodları</h1><p>Kod oluştur, ödülünü belirle, kodu paylaş; kodu giren oyuncu ödülü alır</p></div><button id="refreshMail" class="ghost">Yenile</button></div>
 			<div class="card">
-				<h2>Mesaj gönder</h2>
-				<p class="sub">Oyuncunun Posta Kutusu'na düşer; ödülü kendisi "Al" ile alır (her mesaj bir kez). Ödül boşsa duyuru olur.</p>
+				<h2>Yeni kod</h2>
+				<p class="sub">Oyuncu kodu oyunda Profil &gt; Ayarlar &gt; Promosyon Kodu &gt; Kod Gir ile yazar; ödül Posta Kutusu'na düşer, "Al" ile alır. Her oyuncu bir kodu bir kez kullanabilir.</p>
 				<div class="row">
-					<div><label for="mlTo">Kime</label><select id="mlTo"><option value="all">Herkese</option><option value="one">Tek oyuncu</option></select></div>
-					<div><label for="mlPid">Oyuncu kimliği</label><input id="mlPid" placeholder="RH-XXXXXX" maxlength="9" disabled></div>
-					<div><label for="mlDays">Kaç gün dursun (0 = süresiz)</label><input id="mlDays" type="number" min="0" max="365" value="30"></div>
-				</div>
-				<label for="mlTitle">Başlık</label><input id="mlTitle" maxlength="80" placeholder="ör. Bakım hediyesi">
-				<label for="mlBody">Metin</label><textarea id="mlBody" maxlength="600" placeholder="İsteğe bağlı"></textarea>
-				<label>Ödül</label><div class="grant-grid" id="mlGrant"></div>
-				<div class="row" style="margin-top:16px;align-items:center">
-					<p class="muted small" style="margin:0;flex:3 1 260px" id="mlPreview"></p>
-					<button class="primary fit" id="mlSend">Gönder</button>
-				</div>
-				<div class="msg" id="mlMsg"></div>
-			</div>
-			<div class="card"><h2>Gönderilenler</h2><div id="mailList"></div></div>
-			<div class="card">
-				<h2>Promosyon kodu oluştur</h2>
-				<p class="sub">Oyuncu kodu Posta Kutusu'nun altındaki alana yazar; ödül posta kutusuna mesaj olarak düşer. Her oyuncu bir kez kullanabilir.</p>
-				<div class="row">
-					<div><label for="pcCode">Kod (A-Z, 0-9, _ -)</label><input id="pcCode" maxlength="24" placeholder="ör. HEWRUNE2026" style="text-transform:uppercase"></div>
-					<div><label for="pcMax">Kullanım sınırı (0 = sınırsız)</label><input id="pcMax" type="number" min="0" value="0"></div>
+					<div style="flex:2 1 280px"><label for="pcCode">Kod (A-Z, 0-9, _ -)</label><div class="row" style="gap:8px;flex-wrap:nowrap"><input id="pcCode" maxlength="24" placeholder="ör. HEWRUNE2026" style="text-transform:uppercase;flex:1 1 auto;min-width:0"><button class="ghost fit" id="pcRandom" type="button" title="Rastgele kod">Rastgele</button></div></div>
+					<div><label for="pcMax">Kaç kişi kullanabilir (0 = sınırsız)</label><input id="pcMax" type="number" min="0" value="0"></div>
 					<div><label for="pcDays">Kaç gün geçerli (0 = süresiz)</label><input id="pcDays" type="number" min="0" max="365" value="30"></div>
 				</div>
-				<label for="pcTitle">Mesaj başlığı</label><input id="pcTitle" maxlength="80" placeholder="ör. Promosyon hediyesi">
-				<label for="pcBody">Mesaj metni</label><textarea id="pcBody" maxlength="600" placeholder="İsteğe bağlı"></textarea>
-				<label>Ödül</label><div class="grant-grid" id="pcGrant"></div>
+				<label for="pcTitle">Oyuncunun göreceği başlık</label><input id="pcTitle" maxlength="80" placeholder="Promosyon hediyesi">
+				<label for="pcBody">Mesaj metni</label><textarea id="pcBody" maxlength="600" placeholder="İsteğe bağlı, ör. Facebook grubumuza hoş geldin!"></textarea>
+				<label>Ödül (en az biri)</label><div class="grant-grid" id="pcGrant"></div>
 				<div class="row" style="margin-top:16px;align-items:center">
 					<p class="muted small" style="margin:0;flex:3 1 260px" id="pcPreview"></p>
 					<button class="primary fit" id="pcCreate">Kodu oluştur</button>
 				</div>
 				<div class="msg" id="pcMsg"></div>
 			</div>
-			<div class="card"><h2>Promosyon kodları</h2><div id="promoList"></div></div>
+			<div class="card"><h2>Kodlar</h2><div id="promoList"></div></div>
 		</section>
 
 		<!-- LOGLAR (2026-11-02, supabase/migrations/0012_client_logs.sql) -->
@@ -456,28 +439,81 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("moda
 function loadSession() { try { session = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { session = null; } }
 function saveSession() { try { session ? localStorage.setItem(STORE, JSON.stringify(session)) : localStorage.removeItem(STORE); } catch (e) {} }
 
+// 2026-11-03 (Feridun: "panel sürekli girişe atıyor"): Supabase yenileme anahtarı tek kullanımlık. Aynı anda birkaç istek
+// (sekme açılınca Promise.all) ya da iki sekme aynı anahtarı yenileyince ikincisi reddediliyor, start() de her hatada çıkış
+// yapıyordu. Artık: yenileme tek seferde (paylaşılan söz), önce başka sekmenin yazdığı yeni oturum okunur, 401'de bir kez yenilenip
+// tekrar denenir, süre dolmadan arka planda yenilenir; yalnız sunucu oturumu kesin reddederse girişe dönülür.
+class AuthError extends Error {}
 async function auth(grant, body) {
-	const r = await fetch(`${URL_BASE}/auth/v1/token?grant_type=${grant}`, {
-		method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+	let r;
+	try {
+		r = await fetch(`${URL_BASE}/auth/v1/token?grant_type=${grant}`, {
+			method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+	} catch (e) { throw new Error("Bağlantı hatası, tekrar dene."); }
 	const d = await r.json().catch(() => ({}));
-	if (!r.ok || !d.access_token) throw new Error(d.error_description || d.msg || d.error || ("HTTP " + r.status));
+	if (!r.ok || !d.access_token) {
+		const m = d.error_description || d.msg || d.error || ("HTTP " + r.status);
+		throw r.status >= 400 && r.status < 500 ? new AuthError(m) : new Error(m);
+	}
 	session = { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || (Date.now() / 1000 + (d.expires_in || 3600)), email: d.user && d.user.email };
 	saveSession();
+	scheduleRefresh();
 }
+
+let refreshing = null;
+function refreshNow() {
+	if (!refreshing) refreshing = (async () => {
+		const used = session && session.refresh_token;
+		loadSession();  // başka sekme yenilemiş olabilir
+		if (!session) throw new AuthError("Oturum yok");
+		if (session.refresh_token !== used && session.expires_at - 60 > Date.now() / 1000) return scheduleRefresh();
+		try { await auth("refresh_token", { refresh_token: session.refresh_token }); }
+		catch (e) {
+			// Yarış: o arada başka sekme yeni anahtar yazdıysa onu kullan.
+			const mine = session && session.refresh_token;
+			loadSession();
+			if (session && session.refresh_token !== mine && session.expires_at - 60 > Date.now() / 1000) return scheduleRefresh();
+			throw e;
+		}
+	})().finally(() => { refreshing = null; });
+	return refreshing;
+}
+let refreshT = 0;
+function scheduleRefresh() {
+	clearTimeout(refreshT);
+	if (!session) return;
+	const ms = Math.max(5000, (session.expires_at - 120) * 1000 - Date.now());
+	refreshT = setTimeout(() => refreshNow().catch(onAuthFail), ms);
+}
+function onAuthFail(e) {
+	if (e instanceof AuthError) { say("loginMsg", "Oturum süresi doldu, tekrar giriş yap.", "err"); logout(false); }
+}
+document.addEventListener("visibilitychange", () => {
+	if (document.visibilityState === "visible" && session && session.expires_at - 120 < Date.now() / 1000) refreshNow().catch(onAuthFail);
+});
+window.addEventListener("storage", (e) => { if (e.key === STORE) { loadSession(); if (session) scheduleRefresh(); else showLogin(); } });
 
 async function ensureToken() {
-	if (!session) throw new Error("Oturum yok");
+	if (!session) loadSession();
+	if (!session) throw new AuthError("Oturum yok");
 	if (session.expires_at - 60 > Date.now() / 1000) return;
-	await auth("refresh_token", { refresh_token: session.refresh_token });
+	await refreshNow();
 }
 
-async function rpc(fn, args) {
-	await ensureToken();
-	const r = await fetch(`${URL_BASE}/rest/v1/rpc/${fn}`, {
-		method: "POST",
-		headers: { apikey: KEY, Authorization: "Bearer " + session.access_token, "Content-Type": "application/json", Accept: "application/json" },
-		body: JSON.stringify(args || {}) });
+async function rpc(fn, args, retried = false) {
+	await ensureToken().catch((e) => { onAuthFail(e); throw e; });
+	let r;
+	try {
+		r = await fetch(`${URL_BASE}/rest/v1/rpc/${fn}`, {
+			method: "POST",
+			headers: { apikey: KEY, Authorization: "Bearer " + session.access_token, "Content-Type": "application/json", Accept: "application/json" },
+			body: JSON.stringify(args || {}) });
+	} catch (e) { throw new Error("Bağlantı hatası, tekrar dene."); }
 	const d = await r.json().catch(() => null);
+	if (r.status === 401 && !retried) {
+		await refreshNow().catch((e) => { onAuthFail(e); throw e; });
+		return rpc(fn, args, true);
+	}
 	if (!r.ok) {
 		const m = d && (d.message || d.hint) || ("HTTP " + r.status);
 		throw new Error(m === "forbidden" ? "Bu işlem için admin yetkisi gerekiyor" : m);
@@ -496,6 +532,7 @@ function errText(d) {
 async function start() {
 	loadSession();
 	if (!session) return showLogin();
+	scheduleRefresh();
 	try {
 		const me = await rpc("admin_me");
 		if (!me.admin) { say("loginMsg", "Bu hesap admin değil.", "err"); logout(false); return; }
@@ -504,12 +541,13 @@ async function start() {
 		$("app").classList.remove("hidden");
 		openTab("overview");
 	} catch (e) {
-		say("loginMsg", e.message, "err");
-		logout(false);
+		// Yalnız oturum kesin geçersizse çıkış; bağlantı / sunucu hatasında oturum korunur, sayfa yenilenince tekrar denenir.
+		if (e instanceof AuthError) { say("loginMsg", "Oturum süresi doldu, tekrar giriş yap.", "err"); logout(false); }
+		else { showLogin(); say("loginMsg", e.message, "err"); }
 	}
 }
 function showLogin() { $("login").classList.remove("hidden"); $("app").classList.add("hidden"); $("who").textContent = ""; }
-function logout(clearMsg = true) { session = null; saveSession(); if (clearMsg) say("loginMsg", ""); showLogin(); }
+function logout(clearMsg = true) { clearTimeout(refreshT); session = null; saveSession(); if (clearMsg) say("loginMsg", ""); showLogin(); }
 
 $("loginBtn").onclick = async () => {
 	say("loginMsg", "Giriş yapılıyor…");
@@ -834,7 +872,8 @@ async function loadLog() {
 	} catch (e) { box.replaceChildren(el("span", "msg err", e.message)); }
 }
 
-// --- posta (2026-11-03, 0014_mailbox.sql) ---
+// --- promosyon kodları (2026-11-03, 0014_mailbox.sql) ---
+// Panelden doğrudan ödül gönderilmez (Feridun); admin_mail_send SQL'de duruyor ama panel kullanmıyor.
 // Ödül biçimi oyunla aynı (data/shop.json): tek parça {type, amount} ya da {type: "bundle", parts: [...]}.
 const GRANT_KINDS = [["diamonds", "Elmas"], ["stones", "Yükseltme Taşı"], ["ench_stones", "Efsun Taşı"], ["keys", "Boss Anahtarı"],
 	["premium_keys", "Premium Anahtar"], ["tower_tickets", "Kule Bileti"], ["pet_egg", "Pet Yumurtası"]];
@@ -856,87 +895,63 @@ function grantText(g) {
 	const parts = g.type === "bundle" ? g.parts : [g];
 	return parts.map((p) => `${Number(p.amount).toLocaleString("tr-TR")} ${GRANT_NAME[p.type] || p.type}`).join(" + ");
 }
-function mailPreview() {
-	const one = $("mlTo").value === "one";
-	$("mlPid").disabled = !one;
-	$("mlPreview").textContent = `${one ? ($("mlPid").value.trim().toUpperCase() || "RH-?") : "Herkese"}: ${grantText(readGrant($("mlGrant")))}`;
-}
 function promoPreview() {
-	$("pcPreview").textContent = `${$("pcCode").value.trim().toUpperCase() || "KOD"}: ${grantText(readGrant($("pcGrant")))}`;
+	const max = Number($("pcMax").value) || 0, days = Number($("pcDays").value) || 0;
+	$("pcPreview").textContent = `${$("pcCode").value.trim().toUpperCase() || "KOD"}: ${grantText(readGrant($("pcGrant")))} · ${max ? max + " kişi" : "sınırsız kişi"} · ${days ? days + " gün" : "süresiz"}`;
 }
-buildGrantInputs($("mlGrant"), mailPreview);
+// Karışmayan harfler (0/O, 1/I yok): HEW-XXXXX
+function randomCode() {
+	const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", b = new Uint32Array(5);
+	crypto.getRandomValues(b);
+	return "HEW-" + [...b].map((n) => abc[n % abc.length]).join("");
+}
+async function copyCode(code) {
+	try { await navigator.clipboard.writeText(code); toast(`${code} kopyalandı`, "good"); } catch (e) { toast("Kopyalanamadı: " + code, "err"); }
+}
 buildGrantInputs($("pcGrant"), promoPreview);
-$("mlTo").onchange = $("mlPid").oninput = mailPreview;
-$("pcCode").oninput = promoPreview;
+$("pcCode").oninput = $("pcMax").oninput = $("pcDays").oninput = promoPreview;
+$("pcRandom").onclick = () => { $("pcCode").value = randomCode(); promoPreview(); };
 $("refreshMail").onclick = () => loadMail();
-const MAIL_ERR = { player_not_found: "Bu kimlikte oyuncu yok.", bad_grant: "Ödül geçersiz.", bad_code: "Kod 3-24 karakter olmalı: A-Z, 0-9, _ ve -.", exists: "Bu kod zaten var." };
+const MAIL_ERR = { bad_grant: "Ödül geçersiz.", bad_code: "Kod 3-24 karakter olmalı: A-Z, 0-9, _ ve -.", exists: "Bu kod zaten var." };
 function mailErr(e) {
 	return /mail|promo/.test(e.message) && /function|does not exist|404/.test(e.message) ? "Posta tabloları yok: supabase/migrations/0014_mailbox.sql çalıştırılmalı." : e.message;
 }
-$("mlSend").onclick = async () => {
-	const one = $("mlTo").value === "one", pid = $("mlPid").value.trim().toUpperCase(), title = $("mlTitle").value.trim();
-	const grant = readGrant($("mlGrant"));
-	if (!title) return say("mlMsg", "Başlık yaz.", "err");
-	if (one && !/^RH-[A-Z0-9]{6}$/.test(pid)) return say("mlMsg", "Oyuncu kimliği RH-XXXXXX biçiminde olmalı.", "err");
-	if (!confirm(`${one ? pid : "TÜM oyunculara"} gönderilsin mi?\n\n${title}\nÖdül: ${grantText(grant)}`)) return;
-	say("mlMsg", "Gönderiliyor…");
-	try {
-		const r = await rpc("admin_mail_send", { p_public_id: one ? pid : null, p_title: title, p_body: $("mlBody").value, p_grant: grant, p_days: Number($("mlDays").value) || 0 });
-		if (!r.ok) return say("mlMsg", MAIL_ERR[r.error] || r.error, "err");
-		say("mlMsg", "Gönderildi. Oyuncular en geç 5 dakika içinde görür.", "good");
-		$("mlTitle").value = $("mlBody").value = "";
-		buildGrantInputs($("mlGrant"), mailPreview); mailPreview();
-		loadMail();
-	} catch (e) { say("mlMsg", mailErr(e), "err"); }
-};
 $("pcCreate").onclick = async () => {
-	const code = $("pcCode").value.trim().toUpperCase(), title = $("pcTitle").value.trim(), grant = readGrant($("pcGrant"));
+	const code = $("pcCode").value.trim().toUpperCase(), title = $("pcTitle").value.trim() || "Promosyon hediyesi", grant = readGrant($("pcGrant"));
 	if (!/^[A-Z0-9_-]{3,24}$/.test(code)) return say("pcMsg", MAIL_ERR.bad_code, "err");
-	if (!title) return say("pcMsg", "Mesaj başlığı yaz.", "err");
 	if (!grant) return say("pcMsg", "En az bir ödül gir.", "err");
 	say("pcMsg", "Oluşturuluyor…");
 	try {
 		const r = await rpc("admin_promo_create", { p_code: code, p_title: title, p_body: $("pcBody").value, p_grant: grant,
 			p_max_uses: Number($("pcMax").value) || null, p_days: Number($("pcDays").value) || null });
 		if (!r.ok) return say("pcMsg", MAIL_ERR[r.error] || r.error, "err");
-		say("pcMsg", `${r.code} oluşturuldu.`, "good");
+		say("pcMsg", `${r.code} oluşturuldu. Kodu paylaşabilirsin.`, "good");
+		copyCode(r.code);
 		$("pcCode").value = $("pcTitle").value = $("pcBody").value = "";
 		buildGrantInputs($("pcGrant"), promoPreview); promoPreview();
 		loadMail();
 	} catch (e) { say("pcMsg", mailErr(e), "err"); }
 };
 async function loadMail() {
-	mailPreview(); promoPreview();
+	promoPreview();
 	try {
-		const [mails, codes] = await Promise.all([rpc("admin_mail_list", { p_limit: 50 }), rpc("admin_promo_list", {})]);
-		$("mailList").replaceChildren(...(mails.length ? mails.map((m) => {
-			const it = el("div", "list-item"); it.style.setProperty("--c", m.grant ? "#f9c22b" : "#5ab4ff");
-			const g = el("div", "grow"); const top = el("div", "top");
-			top.append(el("b", null, m.title), el("span", "meta", `${m.to_public_id ? (m.to_nickname || "?") + " " + m.to_public_id : "Herkese"} · ${m.claims} alan`));
-			g.append(top, el("div", "meta", `${grantText(m.grant)} · ${fmt(m.created_at)}${m.expires_at ? " · bitiş " + fmt(m.expires_at) : ""}`));
-			if (m.body) g.append(el("div", "meta", m.body));
-			const a = el("div", "actions"); const del = el("button", "danger", "Sil");
-			del.onclick = async () => {
-				if (!confirm("Mesaj silinsin mi? Henüz almayan oyuncular artık göremez.")) return;
-				try { await rpc("admin_mail_delete", { p_id: m.id }); toast("Silindi", "good"); loadMail(); } catch (e) { toast(e.message, "err"); }
-			};
-			a.append(del); g.append(a); it.append(g); return it;
-		}) : [el("div", "empty", "Henüz mesaj gönderilmedi.")]));
+		const codes = await rpc("admin_promo_list", {});
 		$("promoList").replaceChildren(...(codes.length ? codes.map((c) => {
-			const it = el("div", "list-item"); it.style.setProperty("--c", c.active ? "#5fe08a" : "var(--line2)");
+			const expired = c.expires_at && new Date(c.expires_at) < new Date(), full = c.max_uses && c.uses >= c.max_uses;
+			const state = !c.active ? "kapalı" : expired ? "süresi doldu" : full ? "doldu" : "açık";
+			const it = el("div", "list-item"); it.style.setProperty("--c", state === "açık" ? "#5fe08a" : "var(--line2)");
 			const g = el("div", "grow"); const top = el("div", "top");
-			top.append(el("b", null, c.code), el("span", "meta", `${c.uses}${c.max_uses ? " / " + c.max_uses : ""} kullanım · ${c.active ? "açık" : "kapalı"}`));
-			g.append(top, el("div", "meta", `${c.title} · ${grantText(c.grant)}${c.expires_at ? " · bitiş " + fmt(c.expires_at) : " · süresiz"}`));
-			const a = el("div", "actions"); const tg = el("button", c.active ? "danger" : "ghost", c.active ? "Kapat" : "Aç");
+			top.append(el("b", null, c.code), el("span", "meta", `${c.uses}${c.max_uses ? " / " + c.max_uses : ""} kişi kullandı · ${state}`));
+			g.append(top, el("div", "meta", `${grantText(c.grant)} · ${c.title}${c.expires_at ? " · bitiş " + fmt(c.expires_at) : " · süresiz"}`));
+			const a = el("div", "actions");
+			const cp = el("button", "ghost", "Kopyala"); cp.onclick = () => copyCode(c.code);
+			const tg = el("button", c.active ? "danger" : "ghost", c.active ? "Kapat" : "Aç");
 			tg.onclick = async () => {
 				try { await rpc("admin_promo_set_active", { p_code: c.code, p_active: !c.active }); loadMail(); } catch (e) { toast(e.message, "err"); }
 			};
-			a.append(tg); g.append(a); it.append(g); return it;
+			a.append(cp, tg); g.append(a); it.append(g); return it;
 		}) : [el("div", "empty", "Henüz kod yok.")]));
-	} catch (e) {
-		$("mailList").replaceChildren(el("div", "msg err", mailErr(e)));
-		$("promoList").replaceChildren();
-	}
+	} catch (e) { $("promoList").replaceChildren(el("div", "msg err", mailErr(e))); }
 }
 
 // --- loglar ---
