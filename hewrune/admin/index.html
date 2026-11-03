@@ -294,10 +294,10 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 		<!-- İŞLEM KAYDI -->
 		<!-- LOGLAR (2026-11-02, supabase/migrations/0012_client_logs.sql) -->
 		<section data-page="logs" class="hidden">
-			<div class="page-head"><div><h1>Loglar</h1><p>Hatalar, çökmeler ve oyuncuların nerede bıraktığı</p></div><button id="refreshLogs" class="ghost">Yenile</button></div>
+			<div class="page-head"><div><h1>Loglar</h1><p>Oturumlar, hatalar, çökmeler ve oyuncuların nerede bıraktığı</p></div><button id="refreshLogs" class="ghost">Yenile</button></div>
 			<div class="card">
 				<div class="row">
-					<select id="logKind" style="flex:1 1 160px"><option value="error">Hatalar</option><option value="crash">Çökmeler</option><option value="event">Olaylar</option></select>
+					<select id="logKind" style="flex:1 1 160px"><option value="sessions" selected>Oturumlar</option><option value="error">Hatalar</option><option value="crash">Çökmeler</option><option value="event">Olaylar</option></select>
 					<select id="logDays" style="flex:1 1 140px"><option value="1">Son 24 saat</option><option value="7" selected>Son 7 gün</option><option value="30">Son 30 gün</option></select>
 				</div>
 				<div class="msg" id="logsMsg"></div>
@@ -793,7 +793,7 @@ async function loadLog() {
 $("refreshLogs").onclick = () => loadLogs();
 $("logKind").onchange = $("logDays").onchange = () => loadLogs();
 const KIND_COL = { error: "#f9c22b", crash: "#f05d5d", event: "#5ab4ff" };
-const EVENT_NAMES = { session: "Oturum", chapter: "Bölüme ulaştı", ad: "Reklam izlendi", purchase: "Satın alma", rebirth: "Yeniden doğuş", boss: "Boss savaşı", tower: "Kule koşusu" };
+const EVENT_NAMES = { session: "Oturum açıldı", session_end: "Oturum kapandı", chapter: "Bölüme ulaştı", ad: "Reklam izlendi", purchase: "Satın alma", rebirth: "Yeniden doğuş", boss: "Boss savaşı", tower: "Kule koşusu" };
 async function loadLogs() {
 	const kind = $("logKind").value, days = Number($("logDays").value);
 	say("logsMsg", "Yükleniyor…");
@@ -801,6 +801,7 @@ async function loadLogs() {
 		const st = await rpc("admin_log_stats", { p_days: days });
 		$("logStats").replaceChildren(el("div", "meta", `${st.players} oyuncu · ${st.errors} hata · ${st.crashes} çökme`));
 		renderChapters(st.chapters || []);
+		if (kind === "sessions") return await loadSessions(days);
 		if (kind === "event") {
 			say("logsMsg", "");
 			const ev = st.events || [];
@@ -816,8 +817,44 @@ async function loadLogs() {
 		say("logsMsg", groups.length ? `${groups.length} farklı ${kind === "crash" ? "çökme" : "hata"}` : "");
 		$("logGroups").replaceChildren(...(groups.length ? groups.map(logGroupItem) : [el("div", "empty", kind === "crash" ? "Çökme yok." : "Hata yok.")]));
 	} catch (e) {
-		say("logsMsg", /log_/.test(e.message) ? "Log tablosu yok: supabase/migrations/0012_client_logs.sql çalıştırılmalı." : e.message, "err");
+		say("logsMsg", /admin_log_sessions/.test(e.message) ? "Oturum görünümü yok: supabase/migrations/0013_log_sessions.sql çalıştırılmalı."
+			: /log_/.test(e.message) ? "Log tablosu yok: supabase/migrations/0012_client_logs.sql çalıştırılmalı." : e.message, "err");
 	}
+}
+// 2026-11-03 (0013_log_sessions): giriş, süre, çıkış. Süre = oyun önde açıkken geçen süre (2 dk'dan kısa arka plan aynı oturum).
+function dur(sec) {
+	if (sec == null) return "-";
+	const m = Math.round(Number(sec) / 60);
+	if (m < 1) return `${Math.round(Number(sec))} sn`;
+	return m < 60 ? `${m} dk` : `${Math.floor(m / 60)} sa ${m % 60} dk`;
+}
+function hm(ts) { return ts ? new Date(ts).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "-"; }
+async function loadSessions(days) {
+	const r = await rpc("admin_log_sessions", { p_days: days, p_limit: 100 });
+	const sm = r.summary || {};
+	say("logsMsg", "");
+	const head = el("div", "meta", `${sm.sessions || 0} oturum · ${sm.players || 0} oyuncu · ortalama ${dur(sm.avg_sec)} · ortanca ${dur(sm.median_sec)} · toplam ${dur(sm.total_sec)}`);
+	head.style.margin = "8px 0";
+	const out = [head, el("h3", null, "Son oturumlar")];
+	const ss = r.sessions || [];
+	out.push(...(ss.length ? ss.map((x) => {
+		const it = el("div", "list-item"); it.style.setProperty("--c", x.crash ? KIND_COL.crash : x.sec == null ? "var(--line2)" : KIND_COL.event);
+		const g = el("div", "grow"); const top = el("div", "top");
+		const end = x.sec == null ? "çıkış yok (açık ya da bilinmiyor)" : `çıkış ${hm(x.end_at)}${x.crash ? " (çöktü)" : ""}`;
+		top.append(el("b", null, `${x.nickname || "?"} ${x.public_id || ""}`), el("span", "meta", dur(x.sec)));
+		g.append(top, el("div", "meta", `giriş ${fmt(x.start_at)} → ${end} · Bölüm ${x.ch ?? "?"} · ${x.device || x.platform || ""} · ${x.app_version || ""}`));
+		it.append(g); return it;
+	}) : [el("div", "empty", "Bu aralıkta oturum yok.")]));
+	out.push(el("h3", null, "Oyuncular"));
+	const ps = r.players || [];
+	out.push(...(ps.length ? ps.map((x) => {
+		const it = el("div", "list-item"); it.style.setProperty("--c", "var(--accent)");
+		const g = el("div", "grow"); const top = el("div", "top");
+		top.append(el("b", null, `${x.nickname || "?"} ${x.public_id || ""}`), el("span", "meta", `${x.sessions} oturum · toplam ${dur(x.total_sec)}`));
+		g.append(top, el("div", "meta", `ilk giriş ${fmt(x.first_at)} · son giriş ${fmt(x.last_at)} · Bölüm ${x.ch ?? "?"} · ${x.platform || ""}`));
+		it.append(g); return it;
+	}) : [el("div", "empty", "Henüz oyuncu yok.")]));
+	$("logGroups").replaceChildren(...out);
 }
 function logGroupItem(gr) {
 	const it = el("div", "list-item"); it.style.setProperty("--c", KIND_COL[gr.kind] || "var(--line2)");
