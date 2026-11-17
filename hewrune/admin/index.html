@@ -762,7 +762,11 @@ function playerItem(p) {
 	g.append(top);
 	const sc = p.scores || {};
 	const scoreText = ["chapter", "tower", "sg", "boss"].filter((k) => sc[k] != null)
-		.map((k) => ({ chapter: "Bölüm", tower: "Kule", sg: "SG", boss: "Boss" })[k] + " " + Number(sc[k]).toLocaleString("tr-TR", { maximumFractionDigits: 0 })).join(" · ");
+		.map((k) => {
+			// Bölüm skoru = ulaşılan aşama sırası (index + 1); oyundaki gibi "3-4" yaz (bölüm başına 10 aşama, balance.json).
+			if (k === "chapter") { const i = Math.max(Number(sc[k]) - 1, 0); return `Aşama ${Math.floor(i / 10) + 1}-${i % 10 + 1}`; }
+			return ({ tower: "Kule", sg: "SG", boss: "Boss" })[k] + " " + Number(sc[k]).toLocaleString("tr-TR", { maximumFractionDigits: 0 });
+		}).join(" · ");
 	g.append(el("div", "meta", `Son görülme ${ago(p.last_seen_at)} · kayıt ${fmt(p.created_at)} · ${p.platform || "?"} ${p.app_version || ""}`));
 	g.append(el("div", "meta", scoreText || "Skor yok"));
 	if (p.reason) g.append(el("div", "meta", "Sebep: " + p.reason));
