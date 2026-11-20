@@ -179,6 +179,78 @@ pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size:
 	main { padding: 18px 16px 50px; }
 	.page-head h1 { font-size: 24px; }
 }
+
+/* ===== 2026-11-20 modern tema (Feridun: "admin paneli biraz daha modern olsun, karıştı") =====
+   Nötr koyu yüzeyler, tek vurgu rengi, düz düğmeler, Inter; oyuncu satırında yalnız ana işlemler, gerisi "⋯" menüsünde. */
+:root {
+	--bg: #0b0c0f; --bg2: #101216; --panel: #13151a; --panel2: #181b21; --panel3: #20242c; --line: #23272f; --line2: #2e333d;
+	--text: #e8eaef; --muted: #9097a3; --dim: #6b7280;
+	--accent: #6d8bff; --accent2: #5ab4ff; --good: #34c38f; --bad: #ef5b5b; --gold: #e6b450;
+	--radius: 12px; --shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}
+body { background: var(--bg); font-size: 14px; }
+h1, h2, h3, .brand, .stat b, .ev-name, .avatar, .preview .pill b { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; letter-spacing: -.01em; }
+button { border-radius: 8px; padding: 7px 13px; font-weight: 550; background: var(--panel2); border-color: var(--line2); }
+button:hover { border-color: #3a404c; background: var(--panel3); }
+button.primary { background: var(--accent); border-color: var(--accent); box-shadow: none; color: #fff; }
+button.primary:hover { background: #5b7bff; }
+button.danger { background: transparent; border-color: rgba(239, 91, 91, .45); color: #ff8f8f; }
+button.danger:hover { background: rgba(239, 91, 91, .12); border-color: var(--bad); }
+#modal button.danger, #mYes.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+button.soft-danger { background: transparent; border-color: rgba(239, 91, 91, .35); color: #ff9c9c; }
+button.soft-ok { background: transparent; border-color: rgba(52, 195, 143, .4); color: #8fe3c2; }
+button.ghost { border-color: transparent; color: var(--muted); }
+button.ghost:hover { color: var(--text); background: var(--panel2); }
+input, select, textarea { border-radius: 8px; background: var(--bg2); border-color: var(--line2); padding: 9px 11px; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(109, 139, 255, .2); }
+.login-card, #modal .box, #inspect .box { border-radius: 14px; }
+aside { background: var(--bg2); padding: 18px 12px; }
+.brand { font-size: 16px; font-weight: 650; padding: 0 8px 16px; }
+.brand img { width: 30px; height: 30px; border-radius: 8px; padding: 3px; }
+.brand small { background: var(--panel3); border-color: var(--line2); color: var(--muted); font-weight: 600; }
+nav#tabs { gap: 2px; }
+nav#tabs button { padding: 8px 10px; gap: 10px; font-weight: 500; border-radius: 8px; }
+nav#tabs button svg { width: 17px; height: 17px; }
+nav#tabs button.on { background: var(--panel3); border-color: transparent; }
+main { padding: 28px 36px 60px; max-width: 1160px; }
+.page-head { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.page-head h1 { font-size: 22px; font-weight: 650; }
+.page-head p { font-size: 13px; }
+.card { border-radius: var(--radius); padding: 18px 20px; }
+.card h2 { font-size: 15px; font-weight: 650; }
+.card.danger-zone { background: var(--panel); border-color: rgba(239, 91, 91, .35); }
+.stats { gap: 10px; }
+.stat { border-radius: 10px; padding: 14px 16px; }
+.stat::before { display: none; }
+.stat b { font-size: 24px; font-weight: 650; }
+.stat span { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.list-item { border-radius: 10px; background: var(--panel); border-left-width: 1px; border-left-color: var(--line); padding: 14px 16px; gap: 14px; position: relative; }
+.list-item::before { content: ""; position: absolute; left: -1px; top: 12px; bottom: 12px; width: 3px; border-radius: 3px; background: var(--c); opacity: .9; }
+.list-item .top b { font-size: 14px; font-weight: 650; }
+.list-item .meta { font-size: 12.5px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; font-size: 14px; background: var(--panel3); color: var(--muted); }
+.actions { gap: 6px; margin-top: 10px; align-items: center; }
+.actions button { padding: 5px 11px; font-size: 12.5px; border-radius: 7px; }
+.badge { font-size: 11px; font-weight: 600; padding: 1px 8px; background: transparent; }
+.ev-card { border-radius: 10px; border-width: 1px; }
+.ev-card.sel { box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 60%, transparent); }
+.seg button { border-radius: 8px; }
+.seg button.on { background: var(--accent); }
+.tbl th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
+.tbl tbody tr:hover td { background: var(--panel2); }
+#toast { border-radius: 10px; background: var(--panel2); }
+/* "⋯" işlem menüsü */
+.more { position: relative; }
+.more > summary { list-style: none; cursor: pointer; padding: 4px 10px; border: 1px solid var(--line2); border-radius: 7px; color: var(--muted); font-weight: 700; line-height: 20px; user-select: none; }
+.more > summary::-webkit-details-marker { display: none; }
+.more > summary:hover { color: var(--text); background: var(--panel3); }
+.more[open] > summary { color: var(--text); background: var(--panel3); }
+.more .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 210px; background: var(--panel2); border: 1px solid var(--line2); border-radius: 10px; padding: 6px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 2px; }
+.more .menu button { text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; font-size: 13px; color: var(--text); }
+.more .menu button:hover { background: var(--panel3); }
+.more .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+.more .menu button.danger { color: #ff8f8f; }
+.more .menu button.danger:hover { background: rgba(239, 91, 91, .12); }
 </style>
 </head>
 <body>
@@ -454,11 +526,11 @@ function toast(text, kind) {
 	const t = $("toast"); t.textContent = text; t.className = "show" + (kind ? " " + kind : "");
 	clearTimeout(toastT); toastT = setTimeout(() => t.className = "", 2600);
 }
-function ask(title, text, { yes = "Tamam", danger = false, input = null } = {}) {
+function ask(title, text, { yes = "Tamam", danger = false, input = null, placeholder = "Sebep (oyuncuya gösterilir, boş bırakılabilir)" } = {}) {
 	return new Promise((resolve) => {
 		$("mTitle").textContent = title; $("mText").textContent = text || "";
 		$("mInput").classList.toggle("hidden", input === null);
-		$("mInput").value = input ?? ""; $("mInput").placeholder = "Sebep (oyuncuya gösterilir, boş bırakılabilir)";
+		$("mInput").value = input ?? ""; $("mInput").placeholder = placeholder;
 		$("mYes").textContent = yes; $("mYes").className = danger ? "danger" : "primary";
 		$("modal").classList.remove("hidden");
 		if (input !== null) $("mInput").focus();
@@ -468,6 +540,7 @@ function ask(title, text, { yes = "Tamam", danger = false, input = null } = {}) 
 	});
 }
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("modal").classList.contains("hidden")) $("mNo").click(); });
+document.addEventListener("click", (e) => { document.querySelectorAll("details.more[open]").forEach((d) => { if (!d.contains(e.target)) d.open = false; }); });
 
 function loadSession() { try { session = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { session = null; } }
 function saveSession() { try { session ? localStorage.setItem(STORE, JSON.stringify(session)) : localStorage.removeItem(STORE); } catch (e) {} }
@@ -557,7 +630,8 @@ async function rpc(fn, args, retried = false) {
 function errText(d) {
 	const map = { no_player: "Oyuncu bulunamadı", bad_kind_or_params: "Tür ya da çarpan geçersiz (sunucu bu etkinliği tanımıyorsa 0011 SQL'i çalıştırılmalı)",
 		bad_time: "Bitiş başlangıçtan sonra olmalı", too_long: "En çok 31 gün sürebilir ve 90 gün içinde bitmeli", no_event: "Etkinlik bulunamadı",
-		bad_value: "Geçersiz değer", no_key: "Böyle bir ayar yok", bad_word: "Kelime yalnız a-z harfleri olmalı (2-32)", exhausted: "Yeni ad bulunamadı" };
+		bad_value: "Geçersiz değer", no_key: "Böyle bir ayar yok", bad_word: "Kelime yalnız a-z harfleri olmalı (2-32)", exhausted: "Yeni ad bulunamadı",
+		admin: "Admin hesabı silinemez", not_found: "Oyuncu bulunamadı", confirm: "Onay kodu oyuncunun ID'siyle aynı değil" };
 	return map[d && d.error] || (d && d.error) || "Bilinmeyen hata";
 }
 
@@ -792,6 +866,12 @@ function playerItem(p) {
 	if (p.reason) g.append(el("div", "meta", "Sebep: " + p.reason));
 	const a = el("div", "actions");
 	const act = (label, cls, fn) => { const b = el("button", cls, label); b.onclick = fn; a.append(b); };
+	// 2026-11-20: satırda yalnız ana işlemler; diğerleri "⋯" menüsünde (panel karışık görünüyordu)
+	const more = el("details", "more");
+	more.append(el("summary", null, "⋯"));
+	const menu = el("div", "menu");
+	more.append(menu);
+	const item = (label, cls, fn) => { if (label === "-") { menu.append(el("hr")); return; } const b = el("button", cls, label); b.onclick = () => { more.open = false; fn(); }; menu.append(b); };
 	act("İncele", "primary", () => inspectPlayer(p));
 	const done = async (promise, okText) => {
 		try { const r = await promise; if (r && r.ok === false) return toast(errText(r), "err"); toast(okText, "good"); searchPlayers(); }
@@ -803,18 +883,28 @@ function playerItem(p) {
 		if (why === null) return;
 		done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: true, p_hidden: p.hidden, p_reason: why }), "Yasaklandı.");
 	});
-	act(p.hidden ? "Sıralamada göster" : "Sıralamada gizle", null, async () => {
+	item(p.hidden ? "Sıralamada göster" : "Sıralamada gizle", null, async () => {
 		if (!p.hidden && !await ask(`${p.nickname} gizlensin mi?`, "Sıralamada görünmez, skorları silinir.", { yes: "Gizle" })) return;
 		done(rpc("admin_set_flags", { p_user: p.user_id, p_banned: p.banned, p_hidden: !p.hidden, p_reason: p.reason }), "Güncellendi.");
 	});
-	act("Adı sıfırla", null, async () => {
+	item("Adı sıfırla", null, async () => {
 		if (!await ask("Ad sıfırlansın mı?", `"${p.nickname}" rastgele bir adla değiştirilir.`, { yes: "Sıfırla" })) return;
 		done(rpc("admin_reset_nickname", { p_user: p.user_id }), "Ad sıfırlandı.");
 	});
-	act("Skorları sil", null, async () => {
+	item("Skorları sil", null, async () => {
 		if (!await ask("Skorlar silinsin mi?", `${p.nickname} oyuncusunun bütün sıralama skorları silinir.`, { yes: "Sil", danger: true })) return;
 		done(rpc("admin_delete_scores", { p_user: p.user_id, p_kind: null }), "Skorlar silindi.");
 	});
+	item("-");
+	// 2026-11-20 (Feridun): kullanıcı silme (sunucu: 0017_admin_delete_player.sql). Onay için oyuncunun ID'si yazılır.
+	item("Kullanıcıyı sil", "danger", async () => {
+		const code = await ask(`${p.nickname} silinsin mi?`,
+			`Hesap, skorlar, bulut kaydı ve geçmiş kalıcı olarak silinir; geri alınamaz. Telefondaki yerel kayıt silinemez. Onaylamak için oyuncunun ID'sini yaz: ${p.public_id}`,
+			{ yes: "Kalıcı olarak sil", danger: true, input: "", placeholder: p.public_id });
+		if (code === null) return;
+		done(rpc("admin_delete_player", { p_user: p.user_id, p_confirm: code.trim() }), "Kullanıcı silindi.");
+	});
+	a.append(more);
 	g.append(a);
 	it.append(av, g);
 	return it;
