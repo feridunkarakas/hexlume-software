@@ -1,1 +1,87 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lumi: Lantern Logic Puzzle</title><style>body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:760px;margin:0 auto;padding:28px 18px;line-height:1.6;color:#1d1b2e;background:#faf9ff}h1,h2{color:#3b2a8a}h2{margin-top:1.6em}a{color:#5a3fd0}footer{margin-top:3em;color:#777;font-size:.9em}</style></head><body><h1>Lumi: Lantern Logic Puzzle</h1><p>Every Lumi lights a lantern! A daily logic puzzle that is easy to learn and hard to put down.</p><p><a href="support/">Support</a> &middot; <a href="privacy/">Privacy Policy</a></p><footer>&copy; 2026 HexLume Software</footer></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lumi: Lantern Logic Puzzle</title>
+<meta name="description" content="Every Lumi lights a lantern! A cozy daily logic puzzle that is easy to learn and hard to put down. Free on the App Store.">
+<meta property="og:title" content="Lumi: Lantern Logic Puzzle">
+<meta property="og:description" content="Every Lumi lights a lantern! Free on the App Store.">
+<meta property="og:image" content="https://feridunkarakas.github.io/hexlume-software/lumi/assets/poster_en.jpg">
+<meta name="apple-itunes-app" content="app-id=6833493516">
+<link rel="icon" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#3a1730;--cream:#fff4d6;--green1:#9bf04f;--green2:#43b61d}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Fredoka,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;min-height:100vh;
+  background:linear-gradient(180deg,#3d1f8f 0%,#8a2fa8 30%,#e8508c 58%,#ff9a4d 82%,#ffd27a 100%) fixed}
+.wrap{max-width:520px;margin:0 auto;padding:20px 16px 40px;text-align:center}
+.top{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}
+.top img{width:64px;height:64px;border-radius:16px;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink)}
+.top h1{margin:0;font-size:46px;font-weight:700;color:#ffd84a;letter-spacing:1px;
+  text-shadow:0 0 0 var(--ink),-3px -3px 0 var(--ink),3px -3px 0 var(--ink),-3px 3px 0 var(--ink),3px 3px 0 var(--ink),0 6px 0 var(--ink)}
+.tag{font-size:20px;font-weight:600;margin:10px 0 16px;text-shadow:0 2px 0 rgba(58,23,48,.6)}
+.phone{width:min(300px,78vw);aspect-ratio:9/16;margin:0 auto;border-radius:28px;overflow:hidden;
+  border:5px solid var(--ink);box-shadow:0 8px 0 var(--ink),0 18px 40px rgba(40,10,60,.45);background:#2a1450}
+.phone video{width:100%;height:100%;object-fit:cover;display:block}
+.cta{display:inline-flex;align-items:center;gap:12px;margin:22px auto 6px;padding:16px 30px;border-radius:999px;
+  background:linear-gradient(180deg,var(--green1),var(--green2));color:#fff;text-decoration:none;font-size:26px;font-weight:700;
+  border:4px solid var(--ink);box-shadow:0 6px 0 var(--ink);text-shadow:0 2px 0 var(--ink);animation:pulse 1.6s ease-in-out infinite}
+.cta svg{width:30px;height:30px;fill:#fff;filter:drop-shadow(0 2px 0 var(--ink))}
+.cta:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+@keyframes pulse{50%{transform:scale(1.05)}}
+.free{font-size:16px;font-weight:500;opacity:.95;margin-bottom:26px}
+.feat{background:var(--cream);color:#5a3410;border:4px solid var(--ink);border-radius:24px;box-shadow:0 6px 0 var(--ink);
+  padding:16px 18px;text-align:left;margin:0 0 22px}
+.feat h2{margin:0 0 8px;font-size:22px;color:var(--ink)}
+.feat ul{margin:0;padding-left:20px;font-size:17px;line-height:1.55}
+.shots{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 14px;margin:0 -16px;padding-left:16px}
+.shots img{height:360px;border-radius:18px;border:3px solid var(--ink);scroll-snap-align:center;flex:none}
+.cta2{margin-top:10px}
+footer{margin-top:26px;font-size:14px;color:rgba(58,23,48,.85)}
+footer a{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><img src="assets/icon.png" alt="Lumi"><h1>LUMI</h1></div>
+  <div class="tag" data-t="tag">Every Lumi lights a lantern!</div>
+  <div class="phone"><video id="tr" autoplay muted loop playsinline preload="auto" poster="assets/poster_en.jpg"><source src="assets/trailer_en.mp4" type="video/mp4"></video></div>
+  <a class="cta" href="https://apps.apple.com/app/id6833493516" id="dl">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.37 12.6c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.18-1.73-1.35-.14-2.65.8-3.33.8-.7 0-1.75-.78-2.88-.76-1.48.02-2.85.86-3.61 2.19-1.54 2.67-.39 6.62 1.1 8.79.74 1.06 1.61 2.25 2.75 2.2 1.11-.04 1.52-.71 2.86-.71 1.33 0 1.71.71 2.88.69 1.19-.02 1.94-1.07 2.66-2.14.84-1.23 1.19-2.42 1.2-2.48-.03-.01-2.31-.89-2.33-3.54zM14.18 6.13c.6-.74 1.01-1.75.9-2.77-.87.04-1.94.59-2.56 1.32-.56.64-1.05 1.68-.92 2.67.98.08 1.97-.49 2.58-1.22z"/></svg>
+    <span data-t="cta">Download Free</span>
+  </a>
+  <div class="free" data-t="free">Free on the App Store · iPhone</div>
+  <div class="feat">
+    <h2 data-t="h">Easy to learn, hard to put down</h2>
+    <ul>
+      <li data-t="f1">Place Lumis to light every lantern: one per garden, one per lantern.</li>
+      <li data-t="f2">1000 levels, from relaxing to brain-burning.</li>
+      <li data-t="f3">Daily puzzle, speed rush, marathon and zen modes.</li>
+      <li data-t="f4">Combos, fireworks and 34 cute Lumis to collect.</li>
+    </ul>
+  </div>
+  <div class="shots" id="shots"></div>
+  <a class="cta cta2" href="https://apps.apple.com/app/id6833493516"><span data-t="cta2">Play Lumi Now</span></a>
+  <footer><a href="support/" data-t="sup">Support</a> · <a href="privacy/" data-t="priv">Privacy Policy</a><br>&copy; 2026 HexLume Software</footer>
+</div>
+<script>
+(function(){
+  var T={tr:{tag:"Her Lumi bir fener yakar!",cta:"Ücretsiz İndir",free:"App Store'da ücretsiz · iPhone",h:"Öğrenmesi kolay, bırakması zor",
+    f1:"Lumileri yerleştir, bütün fenerleri yak: her bahçeye bir, her fenere bir Lumi.",f2:"Rahatlatıcıdan beyin yakana 1000 bölüm.",
+    f3:"Günlük bulmaca, Hız Turu, Maraton ve Rahat mod.",f4:"Kombolar, havai fişekler ve toplanacak 34 sevimli Lumi.",cta2:"Hemen Oyna",sup:"Destek",priv:"Gizlilik Politikası"}};
+  var q=new URLSearchParams(location.search).get("lang");
+  var lang=q||((navigator.language||"en").toLowerCase().indexOf("tr")===0?"tr":"en");
+  if(lang==="tr"){document.documentElement.lang="tr";
+    document.querySelectorAll("[data-t]").forEach(function(e){var k=e.getAttribute("data-t");if(T.tr[k])e.textContent=T.tr[k];});
+    var v=document.getElementById("tr");v.poster="assets/poster_tr.jpg";v.querySelector("source").src="assets/trailer_tr.mp4";v.load();}
+  var s=document.getElementById("shots");
+  ["1_fener","2_bulmaca","3_gunluk","6_koleksiyon"].forEach(function(n){var i=new Image();i.loading="lazy";i.alt="Lumi";i.src="assets/"+(lang==="tr"?"tr":"en")+"_"+n+".jpg";s.appendChild(i);});
+})();
+</script>
+</body>
+</html>
