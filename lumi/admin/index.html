@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Lumi Admin</title>
+<!-- 2026-11-24: Lumi yönetim paneli. Kaynak: lumi/docs/admin/index.html; yayın: hexlume-software/lumi/admin/.
+     Sunucu: Lumi'nin kendi Supabase projesi, lumi/supabase/migrations/0001_analytics.sql (her istek sunucuda lumi_require_admin ile denetlenir).
+     Görünüm ve giriş kodu Hewrune panelinden (hewrune/docs/admin) alındı. Kullanıcı verisi yalnız textContent ile yazılır. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+	--bg: #0f0b1a; --bg2: #151025; --panel: #1b1530; --panel2: #231b3d; --panel3: #2c2350; --line: #342a55; --line2: #463a70;
+	--text: #efeafc; --muted: #a39bc2; --dim: #776f96;
+	--accent: #8b5cf6; --accent2: #5ab4ff; --good: #3fcf7f; --bad: #f05d5d; --gold: #f9c22b;
+	--radius: 18px; --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: radial-gradient(1200px 600px at 80% -10%, #2a1a52 0%, transparent 60%), var(--bg); color: var(--text);
+	font: 15px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
+h1, h2, h3, .brand, .stat b, .ev-name { font-family: Fredoka, Inter, sans-serif; letter-spacing: .2px; }
+img.px { image-rendering: pixelated; }
+button { font: inherit; font-weight: 600; color: var(--text); background: var(--panel2); border: 1px solid var(--line2); border-radius: 12px;
+	padding: 9px 16px; cursor: pointer; transition: transform .08s, border-color .15s, background .15s; }
+button:hover { border-color: var(--accent); }
+button:active { transform: translateY(1px); }
+button.primary { background: linear-gradient(180deg, #9a6cff, #7646e8); border-color: #9a6cff; box-shadow: 0 4px 14px rgba(139, 92, 246, .35); }
+button.danger { background: linear-gradient(180deg, #e8555c, #c23a45); border-color: #f06a70; }
+button.ghost { background: transparent; }
+button.soft-danger { background: rgba(240, 93, 93, .12); border-color: rgba(240, 93, 93, .5); color: #ffb3b3; }
+button.soft-ok { background: rgba(63, 207, 127, .12); border-color: rgba(63, 207, 127, .5); color: #a6f0c6; }
+button:disabled { opacity: .5; cursor: default; transform: none; }
+input, select { font: inherit; color: var(--text); background: var(--bg2); border: 1px solid var(--line2); border-radius: 12px; padding: 10px 12px; width: 100%; }
+input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139, 92, 246, .25); }
+label { display: block; color: var(--muted); font-size: 13px; font-weight: 500; margin: 14px 0 6px; }
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+
+/* giriş */
+#login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.login-card { width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 28px; box-shadow: var(--shadow); }
+.login-card .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.login-card .logo img { width: 48px; height: 48px; background: var(--panel2); border-radius: 14px; padding: 6px; }
+.login-card h1 { margin: 0; font-size: 26px; }
+
+/* iskelet */
+.shell { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+aside { background: rgba(21, 16, 37, .85); border-right: 1px solid var(--line); padding: 20px 14px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 6px; }
+.brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; padding: 0 8px 18px; }
+.brand img { width: 38px; height: 38px; background: var(--panel2); border-radius: 12px; padding: 5px; }
+.brand small { display: inline-block; font: 600 11px Inter, sans-serif; color: #d9c8ff; background: rgba(139, 92, 246, .25); border: 1px solid rgba(139, 92, 246, .5); padding: 2px 8px; border-radius: 99px; margin-left: 2px; }
+nav#tabs { display: flex; flex-direction: column; gap: 4px; }
+nav#tabs button { display: flex; align-items: center; gap: 12px; text-align: left; background: transparent; border: 1px solid transparent; color: var(--muted); padding: 11px 12px; }
+nav#tabs button svg { width: 20px; height: 20px; flex: none; }
+nav#tabs button:hover { color: var(--text); background: var(--panel); }
+nav#tabs button.on { color: var(--text); background: var(--panel2); border-color: var(--line2); }
+nav#tabs button.on svg { color: var(--accent); }
+.side-foot { margin-top: auto; border-top: 1px solid var(--line); padding: 14px 8px 0; }
+.side-foot .who { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 10px; }
+main { padding: 28px 32px 60px; max-width: 1080px; width: 100%; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.page-head h1 { font-size: 30px; margin: 0; }
+.page-head p { margin: 2px 0 0; color: var(--muted); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 18px; }
+.card h2 { font-size: 19px; margin: 0 0 4px; }
+.card .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.card.danger-zone { border-color: rgba(240, 93, 93, .55); background: linear-gradient(180deg, rgba(240, 93, 93, .06), transparent 60%), var(--panel); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.row > * { flex: 1 1 160px; }
+.row > .fit { flex: 0 0 auto; }
+textarea { width: 100%; min-height: 70px; resize: vertical; font: inherit; color: inherit; background: var(--panel2); border: 1px solid var(--line2); border-radius: 10px; padding: 10px; }
+.grant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+.grant-grid label { margin: 0 0 4px; font-size: 12px; }
+
+/* özet */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; position: relative; overflow: hidden; }
+.stat::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--c, var(--accent)); }
+.stat b { display: block; font-size: 30px; font-weight: 600; line-height: 1.1; }
+.stat span { color: var(--muted); font-size: 13px; }
+.live-box { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.live-box .ev-icon { width: 64px; height: 64px; }
+.live-box .info { flex: 1 1 220px; }
+
+/* etkinlik kartları */
+.ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.ev-card { text-align: left; display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: var(--panel2); border: 2px solid var(--line); min-height: 150px; }
+.ev-card:hover { border-color: var(--c); }
+.ev-card.sel { border-color: var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%), var(--panel2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent); }
+.ev-icon { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 22%, transparent); border: 2px solid color-mix(in srgb, var(--c) 70%, transparent); flex: none; }
+.ev-icon img { width: 62%; height: 62%; object-fit: contain; }
+.ev-name { font-size: 17px; font-weight: 600; }
+.ev-desc { color: var(--muted); font-size: 13px; font-weight: 400; line-height: 1.4; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { padding: 8px 14px; border-radius: 99px; background: var(--bg2); }
+.seg button.on { background: var(--accent); border-color: var(--accent); }
+.preview { display: flex; align-items: center; gap: 14px; background: var(--bg2); border: 1px dashed var(--line2); border-radius: 16px; padding: 14px; margin-top: 18px; }
+.preview .pill { display: flex; align-items: center; gap: 12px; background: #140e24; border: 3px solid var(--c); border-radius: 18px; padding: 8px 18px 8px 10px; box-shadow: 0 0 18px color-mix(in srgb, var(--c) 35%, transparent); }
+.preview .pill .ev-icon { width: 40px; height: 40px; }
+.preview .pill small { display: block; font-weight: 700; font-size: 11px; letter-spacing: .6px; color: color-mix(in srgb, var(--c) 60%, white); }
+.preview .pill b { font-family: Fredoka, sans-serif; font-size: 18px; }
+
+.list-item { display: flex; gap: 14px; align-items: flex-start; padding: 14px; border-radius: 14px; background: var(--panel2); border: 1px solid var(--line); margin-top: 10px; border-left: 4px solid var(--c, var(--line2)); }
+.list-item .grow { flex: 1 1 auto; min-width: 0; }
+.list-item .top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
+.list-item .meta { color: var(--muted); font-size: 13px; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.actions button { padding: 6px 12px; font-size: 13px; border-radius: 10px; }
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; margin-left: 8px; background: var(--bg2); border: 1px solid var(--line2); vertical-align: middle; }
+.badge.active { border-color: var(--good); color: #a6f0c6; }
+.badge.active::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); }
+.badge.scheduled { border-color: var(--accent2); color: #b6dcff; }
+.badge.ended { color: var(--dim); }
+.badge.banned { border-color: var(--bad); color: #ffb3b3; }
+.badge.hidden-b { border-color: var(--gold); color: #ffe08a; }
+.badge.gc { border-color: var(--good); color: #a6f0c6; }
+.section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); margin: 18px 0 2px; }
+.avatar { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font: 700 18px Fredoka, sans-serif; background: var(--panel3); flex: none; }
+.empty { text-align: center; color: var(--muted); padding: 26px 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--line2); border-radius: 99px; padding: 4px 6px 4px 12px; font-size: 13px; }
+.chip button { padding: 0 8px; border-radius: 99px; font-size: 13px; line-height: 20px; }
+.chip.allow { border-color: rgba(63, 207, 127, .5); }
+.toggle { display: inline-flex; align-items: center; gap: 10px; }
+.switch { width: 50px; height: 28px; border-radius: 99px; background: var(--line2); position: relative; border: none; padding: 0; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: white; transition: left .15s; }
+.switch.on { background: var(--good); }
+.switch.on::after { left: 25px; }
+pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size: 12px; color: var(--muted); background: var(--bg2); border-radius: 10px; padding: 8px 10px; }
+.msg { min-height: 20px; margin-top: 10px; font-size: 14px; }
+.msg.err { color: #ff9d8a; }
+.msg.good { color: #a6f0c6; }
+
+/* bildirim + modal */
+#toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: var(--panel3); border: 1px solid var(--line2); border-radius: 14px; padding: 12px 18px; box-shadow: var(--shadow); opacity: 0; transition: .2s; pointer-events: none; z-index: 30; max-width: calc(100% - 32px); }
+#toast.show { opacity: 1; transform: translateX(-50%); }
+#toast.err { border-color: var(--bad); }
+#toast.good { border-color: var(--good); }
+#modal { position: fixed; inset: 0; background: rgba(8, 5, 16, .7); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 40; }
+#modal .box { width: 100%; max-width: 440px; background: var(--panel); border: 1px solid var(--line2); border-radius: 22px; padding: 22px; box-shadow: var(--shadow); }
+#modal h3 { margin: 0 0 8px; font-size: 21px; }
+#modal p { margin: 0; color: var(--muted); }
+#modal .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+/* oyuncu incele (0016_save_history) */
+#inspect { position: fixed; inset: 0; background: rgba(8, 5, 16, .7); backdrop-filter: blur(4px); z-index: 35; overflow-y: auto; padding: 24px 16px; }
+#inspect .box { max-width: 860px; margin: 0 auto; background: var(--bg2); border: 1px solid var(--line2); border-radius: 22px; padding: 22px; box-shadow: var(--shadow); }
+#inspect .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+#inspect .head h2 { margin: 0; font-size: 24px; }
+#inspect .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+#inspect .stat b { font-size: 22px; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th { text-align: left; color: var(--dim); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.tbl td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl-wrap { overflow-x: auto; }
+.note { color: var(--dim); font-size: 12px; margin-top: 8px; }
+
+@media (max-width: 820px) {
+	.shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; }
+	aside { position: sticky; top: 0; height: auto; z-index: 10; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
+	.brand { padding: 0; font-size: 18px; }
+	.brand img { width: 32px; height: 32px; }
+	.brand span, .brand small { display: none; }
+	nav#tabs { flex-direction: row; overflow-x: auto; flex: 1; scrollbar-width: none; }
+	nav#tabs button { flex: none; padding: 8px 10px; gap: 6px; font-size: 14px; }
+	nav#tabs button span { display: none; }
+	nav#tabs button.on span { display: inline; }
+	.side-foot { margin: 0; border: 0; padding: 0; }
+	.side-foot .who { display: none; }
+	.side-foot button { padding: 8px 10px; }
+	main { padding: 18px 16px 50px; }
+	.page-head h1 { font-size: 24px; }
+}
+
+/* ===== 2026-11-20 modern tema (Feridun: "admin paneli biraz daha modern olsun, karıştı") =====
+   Nötr koyu yüzeyler, tek vurgu rengi, düz düğmeler, Inter; oyuncu satırında yalnız ana işlemler, gerisi "⋯" menüsünde. */
+:root {
+	--bg: #0b0c0f; --bg2: #101216; --panel: #13151a; --panel2: #181b21; --panel3: #20242c; --line: #23272f; --line2: #2e333d;
+	--text: #e8eaef; --muted: #9097a3; --dim: #6b7280;
+	--accent: #6d8bff; --accent2: #5ab4ff; --good: #34c38f; --bad: #ef5b5b; --gold: #e6b450;
+	--radius: 12px; --shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}
+body { background: var(--bg); font-size: 14px; }
+h1, h2, h3, .brand, .stat b, .ev-name, .avatar, .preview .pill b { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; letter-spacing: -.01em; }
+button { border-radius: 8px; padding: 7px 13px; font-weight: 550; background: var(--panel2); border-color: var(--line2); }
+button:hover { border-color: #3a404c; background: var(--panel3); }
+button.primary { background: var(--accent); border-color: var(--accent); box-shadow: none; color: #fff; }
+button.primary:hover { background: #5b7bff; }
+button.danger { background: transparent; border-color: rgba(239, 91, 91, .45); color: #ff8f8f; }
+button.danger:hover { background: rgba(239, 91, 91, .12); border-color: var(--bad); }
+#modal button.danger, #mYes.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+button.soft-danger { background: transparent; border-color: rgba(239, 91, 91, .35); color: #ff9c9c; }
+button.soft-ok { background: transparent; border-color: rgba(52, 195, 143, .4); color: #8fe3c2; }
+button.ghost { border-color: transparent; color: var(--muted); }
+button.ghost:hover { color: var(--text); background: var(--panel2); }
+input, select, textarea { border-radius: 8px; background: var(--bg2); border-color: var(--line2); padding: 9px 11px; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(109, 139, 255, .2); }
+.login-card, #modal .box, #inspect .box { border-radius: 14px; }
+aside { background: var(--bg2); padding: 18px 12px; }
+.brand { font-size: 16px; font-weight: 650; padding: 0 8px 16px; }
+.brand img { width: 30px; height: 30px; border-radius: 8px; padding: 3px; }
+.brand small { background: var(--panel3); border-color: var(--line2); color: var(--muted); font-weight: 600; }
+nav#tabs { gap: 2px; }
+nav#tabs button { padding: 8px 10px; gap: 10px; font-weight: 500; border-radius: 8px; }
+nav#tabs button svg { width: 17px; height: 17px; }
+nav#tabs button.on { background: var(--panel3); border-color: transparent; }
+main { padding: 28px 36px 60px; max-width: 1160px; }
+.page-head { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.page-head h1 { font-size: 22px; font-weight: 650; }
+.page-head p { font-size: 13px; }
+.card { border-radius: var(--radius); padding: 18px 20px; }
+.card h2 { font-size: 15px; font-weight: 650; }
+.card.danger-zone { background: var(--panel); border-color: rgba(239, 91, 91, .35); }
+.stats { gap: 10px; }
+.stat { border-radius: 10px; padding: 14px 16px; }
+.stat::before { display: none; }
+.stat b { font-size: 24px; font-weight: 650; }
+.stat span { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.list-item { border-radius: 10px; background: var(--panel); border-left-width: 1px; border-left-color: var(--line); padding: 14px 16px; gap: 14px; position: relative; }
+.list-item::before { content: ""; position: absolute; left: -1px; top: 12px; bottom: 12px; width: 3px; border-radius: 3px; background: var(--c); opacity: .9; }
+.list-item .top b { font-size: 14px; font-weight: 650; }
+.list-item .meta { font-size: 12.5px; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; font-size: 14px; background: var(--panel3); color: var(--muted); }
+.actions { gap: 6px; margin-top: 10px; align-items: center; }
+.actions button { padding: 5px 11px; font-size: 12.5px; border-radius: 7px; }
+.badge { font-size: 11px; font-weight: 600; padding: 1px 8px; background: transparent; }
+.ev-card { border-radius: 10px; border-width: 1px; }
+.ev-card.sel { box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 60%, transparent); }
+.seg button { border-radius: 8px; }
+.seg button.on { background: var(--accent); }
+.tbl th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
+.tbl tbody tr:hover td { background: var(--panel2); }
+#toast { border-radius: 10px; background: var(--panel2); }
+/* "⋯" işlem menüsü */
+.more { position: relative; }
+.more > summary { list-style: none; cursor: pointer; padding: 4px 10px; border: 1px solid var(--line2); border-radius: 7px; color: var(--muted); font-weight: 700; line-height: 20px; user-select: none; }
+.more > summary::-webkit-details-marker { display: none; }
+.more > summary:hover { color: var(--text); background: var(--panel3); }
+.more[open] > summary { color: var(--text); background: var(--panel3); }
+.more .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 210px; background: var(--panel2); border: 1px solid var(--line2); border-radius: 10px; padding: 6px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 2px; }
+.more .menu button { text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; font-size: 13px; color: var(--text); }
+.more .menu button:hover { background: var(--panel3); }
+.more .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+.more .menu button.danger { color: #ff8f8f; }
+.more .menu button.danger:hover { background: rgba(239, 91, 91, .12); }
+</style>
+<style>.shell.single main { margin-left: 0; max-width: 1100px; margin: 0 auto; } .topbar { display:flex; justify-content:space-between; align-items:center; padding: 14px 4px 0; }</style>
+</head>
+<body>
+
+<section id="login">
+	<div class="login-card">
+		<div class="logo"><div><h1>Lumi</h1><span class="muted small">Yönetim paneli</span></div></div>
+		<label for="email">E-posta</label>
+		<input id="email" type="email" autocomplete="username">
+		<label for="password">Şifre</label>
+		<input id="password" type="password" autocomplete="current-password">
+		<div style="margin-top:18px"><button class="primary" id="loginBtn" style="width:100%">Giriş yap</button></div>
+		<div class="msg" id="loginMsg"></div>
+	</div>
+</section>
+
+<div id="app" class="shell single hidden">
+	<main>
+		<div class="topbar"><b>Lumi · Admin</b><div class="row" style="gap:10px;align-items:center"><span class="who" id="who"></span><button id="logout" class="ghost">Çıkış</button></div></div>
+		<!-- LUMI (2026-11-24, supabase/migrations/0018_lumi_analytics.sql): anonim oyun ölçümü -->
+		<section data-page="lumi">
+			<div class="page-head"><div><h1>Lumi</h1><p>Kurulum, geri gelme, bölüm hunisi ve oyun içi olaylar (anonim)</p></div>
+				<div class="row" style="gap:8px"><select id="lumiDays" style="width:auto"><option value="7">Son 7 gün</option><option value="14" selected>Son 14 gün</option><option value="30">Son 30 gün</option><option value="90">Son 90 gün</option></select><button id="refreshLumi" class="ghost">Yenile</button></div></div>
+			<div class="msg" id="lumiMsg"></div>
+			<div class="stats" id="lumiStats"></div>
+			<div class="card"><h2>Günlük</h2><p class="sub">Yeni kurulum ve o gün oynayan</p><div id="lumiDaily"></div></div>
+			<div class="card"><h2>Geri gelme</h2><p class="sub">Kurulum gününe göre: ertesi gün (D1), 3. gün (D3), 7. gün (D7) yeniden açanlar</p><div id="lumiCohorts"></div></div>
+			<div class="card"><h2>Bölüm hunisi</h2><p class="sub">Bu aralıkta gelen oyuncuların geçtiği en yüksek bölüm</p><div id="lumiReach"></div></div>
+			<div class="card"><h2>Bölümler</h2><p class="sub">Başlayan / bitiren oyuncu, kayıp, yarıda bırakma, ortalama süre, ipucu (ilk 60 bölüm)</p><div id="lumiLevels" style="overflow-x:auto"></div></div>
+			<div class="card"><h2>Olaylar</h2><p class="sub">Modlar, reklamlar, satın almalar, ipucu</p><div id="lumiEvents"></div></div>
+			<div class="card"><h2>Sürüm ve dil</h2><div id="lumiVersions"></div></div>
+		</section>
+
+	</main>
+</div>
+<div id="toast"></div>
+
+<script>
+const URL_BASE = "https://cgxjsinsejdkvleyyiqi.supabase.co";
+const KEY = "sb_publishable_xEKbGGj2FGPA9m-gZpkuFg_UUgjpkku";  // Lumi projesinin herkese açık anahtarı (oyunla aynı)
+const STORE = "lumi_admin_session";
+let session = null;
+const $ = (id) => document.getElementById(id);
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function say(id, text, kind) { const m = $(id); m.textContent = text || ""; m.className = "msg" + (kind ? " " + kind : ""); }
+
+function loadSession() { try { session = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { session = null; } }
+function saveSession() { try { session ? localStorage.setItem(STORE, JSON.stringify(session)) : localStorage.removeItem(STORE); } catch (e) {} }
+
+// 2026-11-03 (Feridun: "panel sürekli girişe atıyor"): Supabase yenileme anahtarı tek kullanımlık. Aynı anda birkaç istek
+// (sekme açılınca Promise.all) ya da iki sekme aynı anahtarı yenileyince ikincisi reddediliyor, start() de her hatada çıkış
+// yapıyordu. Artık: yenileme tek seferde (paylaşılan söz), önce başka sekmenin yazdığı yeni oturum okunur, 401'de bir kez yenilenip
+// tekrar denenir, süre dolmadan arka planda yenilenir; yalnız sunucu oturumu kesin reddederse girişe dönülür.
+class AuthError extends Error {}
+async function auth(grant, body) {
+	let r;
+	try {
+		r = await fetch(`${URL_BASE}/auth/v1/token?grant_type=${grant}`, {
+			method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+	} catch (e) { throw new Error("Bağlantı hatası, tekrar dene."); }
+	const d = await r.json().catch(() => ({}));
+	if (!r.ok || !d.access_token) {
+		const m = d.error_description || d.msg || d.error || ("HTTP " + r.status);
+		throw r.status >= 400 && r.status < 500 ? new AuthError(m) : new Error(m);
+	}
+	session = { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: d.expires_at || (Date.now() / 1000 + (d.expires_in || 3600)), email: d.user && d.user.email };
+	saveSession();
+	scheduleRefresh();
+}
+
+let refreshing = null;
+function refreshNow() {
+	if (!refreshing) refreshing = (async () => {
+		const used = session && session.refresh_token;
+		loadSession();  // başka sekme yenilemiş olabilir
+		if (!session) throw new AuthError("Oturum yok");
+		if (session.refresh_token !== used && session.expires_at - 60 > Date.now() / 1000) return scheduleRefresh();
+		try { await auth("refresh_token", { refresh_token: session.refresh_token }); }
+		catch (e) {
+			// Yarış: o arada başka sekme yeni anahtar yazdıysa onu kullan.
+			const mine = session && session.refresh_token;
+			loadSession();
+			if (session && session.refresh_token !== mine && session.expires_at - 60 > Date.now() / 1000) return scheduleRefresh();
+			throw e;
+		}
+	})().finally(() => { refreshing = null; });
+	return refreshing;
+}
+let refreshT = 0;
+function scheduleRefresh() {
+	clearTimeout(refreshT);
+	if (!session) return;
+	const ms = Math.max(5000, (session.expires_at - 120) * 1000 - Date.now());
+	refreshT = setTimeout(() => refreshNow().catch(onAuthFail), ms);
+}
+function onAuthFail(e) {
+	if (e instanceof AuthError) { say("loginMsg", "Oturum süresi doldu, tekrar giriş yap.", "err"); logout(false); }
+}
+document.addEventListener("visibilitychange", () => {
+	if (document.visibilityState === "visible" && session && session.expires_at - 120 < Date.now() / 1000) refreshNow().catch(onAuthFail);
+});
+window.addEventListener("storage", (e) => { if (e.key === STORE) { loadSession(); if (session) scheduleRefresh(); else showLogin(); } });
+
+async function ensureToken() {
+	if (!session) loadSession();
+	if (!session) throw new AuthError("Oturum yok");
+	if (session.expires_at - 60 > Date.now() / 1000) return;
+	await refreshNow();
+}
+
+async function rpc(fn, args, retried = false) {
+	await ensureToken().catch((e) => { onAuthFail(e); throw e; });
+	let r;
+	try {
+		r = await fetch(`${URL_BASE}/rest/v1/rpc/${fn}`, {
+			method: "POST",
+			headers: { apikey: KEY, Authorization: "Bearer " + session.access_token, "Content-Type": "application/json", Accept: "application/json" },
+			body: JSON.stringify(args || {}) });
+	} catch (e) { throw new Error("Bağlantı hatası, tekrar dene."); }
+	const d = await r.json().catch(() => null);
+	if (r.status === 401 && !retried) {
+		await refreshNow().catch((e) => { onAuthFail(e); throw e; });
+		return rpc(fn, args, true);
+	}
+	if (!r.ok) {
+		const m = d && (d.message || d.hint) || ("HTTP " + r.status);
+		throw new Error(m === "forbidden" ? "Bu işlem için admin yetkisi gerekiyor" : m);
+	}
+	return d;
+}
+
+
+async function start() {
+	loadSession();
+	if (!session) return showLogin();
+	scheduleRefresh();
+	try {
+		const me = await rpc("admin_me");
+		if (!me.admin) { say("loginMsg", "Bu hesap admin değil.", "err"); logout(false); return; }
+		$("who").textContent = me.email || session.email || "";
+		$("login").classList.add("hidden");
+		$("app").classList.remove("hidden");
+		loadLumi();
+	} catch (e) {
+		if (e instanceof AuthError) { say("loginMsg", "Oturum süresi doldu, tekrar giriş yap.", "err"); logout(false); }
+		else { showLogin(); say("loginMsg", e.message, "err"); }
+	}
+}
+function showLogin() { $("login").classList.remove("hidden"); $("app").classList.add("hidden"); $("who").textContent = ""; }
+function logout(clearMsg = true) { clearTimeout(refreshT); session = null; saveSession(); if (clearMsg) say("loginMsg", ""); showLogin(); }
+$("logout").onclick = () => logout();
+$("loginBtn").onclick = async () => {
+	say("loginMsg", "Giriş yapılıyor…");
+	try {
+		await auth("password", { email: $("email").value.trim(), password: $("password").value });
+		$("password").value = "";
+		say("loginMsg", "");
+		await start();
+	} catch (e) { say("loginMsg", e.message === "Invalid login credentials" ? "E-posta ya da şifre hatalı." : e.message, "err"); }
+};
+$("password").addEventListener("keydown", (e) => { if (e.key === "Enter") $("loginBtn").click(); });
+
+function dur(sec) {
+	if (sec == null) return "-";
+	const m = Math.round(Number(sec) / 60);
+	if (m < 1) return `${Math.round(Number(sec))} sn`;
+	return m < 60 ? `${m} dk` : `${Math.floor(m / 60)} sa ${m % 60} dk`;
+}
+
+// --- Lumi (0018_lumi_analytics) ---
+$("refreshLumi").onclick = () => loadLumi();
+$("lumiDays").onchange = () => loadLumi();
+const LUMI_EV = { first_open: "İlk açılış", session_start: "Oturum", level_win: "Bölüm bitti", level_fail: "Canlar bitti", level_quit: "Yarıda bıraktı",
+	mode_start: "Mod başladı", hint_used: "İpucu", wand_used: "Değnek", ad_request: "Reklam istendi", ad_watched: "Reklam izlendi",
+	ad_skipped: "Reklam yarıda", ad_not_ready: "Reklam hazır değil", purchase: "Satın alma", tut_step: "Öğretici adımı" };
+const LUMI_KEY = { level: "Bölüm", daily: "Günlük", rush: "Hız Turu", usta: "Usta", zen: "Rahat", marathon: "Maraton",
+	hint: "ipucu", wand: "değnek", x2: "2x ödül", revive: "devam", spin: "çark", shop: "mağaza", other: "diğer" };
+function pct(a, b) { return b ? Math.round(100 * a / b) + "%" : "-"; }
+function lumiTable(head, rows) {
+	const tb = document.createElement("table"); tb.style.cssText = "width:100%;border-collapse:collapse;font-size:14px";
+	const tr = document.createElement("tr");
+	head.forEach((h) => { const th = el("th", null, h); th.style.cssText = "text-align:left;color:var(--muted);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line)"; tr.append(th); });
+	tb.append(tr);
+	rows.forEach((r) => { const row = document.createElement("tr"); r.forEach((c) => { const td = el("td", null, String(c)); td.style.cssText = "padding:6px 8px;border-bottom:1px solid var(--line)"; row.append(td); }); tb.append(row); });
+	return tb;
+}
+function lumiBars(box, list, label, val) {
+	if (!list.length) return box.replaceChildren(el("div", "empty", "Henüz veri yok."));
+	const max = Math.max(1, ...list.map(val)), total = list.reduce((s, x) => s + val(x), 0);
+	box.replaceChildren(...list.map((x) => {
+		const row = el("div", "row"); row.style.alignItems = "center"; row.style.margin = "4px 0";
+		const lab = el("span", "meta", label(x)); lab.style.flex = "0 0 110px";
+		const bar = el("div"); bar.style.cssText = `flex:1 1 auto;height:14px;border-radius:7px;background:var(--accent);max-width:${Math.max(2, 100 * val(x) / max)}%`;
+		const n = el("span", "meta", `${val(x)} (${pct(val(x), total)})`); n.style.flex = "0 0 90px"; n.style.textAlign = "right";
+		row.append(lab, bar, n); return row;
+	}));
+}
+async function loadLumi() {
+	say("lumiMsg", "Yükleniyor…");
+	try {
+		const s = await rpc("admin_lumi_stats", { p_days: Number($("lumiDays").value) });
+		say("lumiMsg", "");
+		const coh = s.cohorts || [], size = coh.reduce((a, c) => a + Number(c.size), 0);
+		const d1 = coh.reduce((a, c) => a + Number(c.d1), 0);
+		const items = [[s.installs, "Yeni kurulum", "#f9c22b"], [s.active, "Oynayan", "#3fcf7f"], [pct(d1, size), "D1 geri gelme", "#5ab4ff"],
+			[dur(s.avg_session_secs), "Ort. oturum", "#8b5cf6"], [dur(s.avg_daily_secs), "Günlük oyun süresi", "#ff7a5c"], [s.all_installs, "Toplam kurulum", "#a39bc2"]];
+		$("lumiStats").replaceChildren(...items.map(([v, t, c]) => { const d = el("div", "stat"); d.style.setProperty("--c", c);
+			d.append(el("b", null, typeof v === "number" ? v.toLocaleString("tr-TR") : String(v ?? "-")), el("span", null, t)); return d; }));
+		const day = (x) => new Date(x + "T12:00:00").toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+		$("lumiDaily").replaceChildren(lumiTable(["Gün", "Yeni kurulum", "Oynayan", "Biten bölüm"], (s.daily || []).slice().reverse().map((x) => [day(x.day), x.installs, x.dau, x.wins])));
+		$("lumiCohorts").replaceChildren(coh.length ? lumiTable(["Kurulum günü", "Kişi", "D1", "D3", "D7"], coh.slice().reverse().map((c) => [day(c.day), c.size, pct(c.d1, c.size), pct(c.d3, c.size), pct(c.d7, c.size)])) : el("div", "empty", "Henüz veri yok."));
+		lumiBars($("lumiReach"), s.reach || [], (x) => x.top ? `Bölüm ${x.top}` : "Hiç bitirmedi", (x) => Number(x.n));
+		const lv = s.levels || [];
+		$("lumiLevels").replaceChildren(lv.length ? lumiTable(["Bölüm", "Başlayan", "Bitiren", "Bitirme", "Kayıp", "Bıraktı", "Ort. süre", "İpucu"],
+			lv.map((x) => [x.level, x.started, x.won, pct(x.won, x.started), x.fails, x.quits, x.avg_secs == null ? "-" : x.avg_secs + " sn", x.hints])) : el("div", "empty", "Henüz veri yok."));
+		const ev = s.events || [];
+		$("lumiEvents").replaceChildren(ev.length ? lumiTable(["Olay", "Ayrıntı", "Kez", "Oyuncu"], ev.map((e) => [LUMI_EV[e.name] || e.name, LUMI_KEY[e.key] || e.key || "", e.count, e.users])) : el("div", "empty", "Henüz veri yok."));
+		const vs = (s.versions || []).map((v) => [`${v.v || "?"} · ${v.p || "?"}`, v.n]), ls = (s.locales || []).map((l) => [`Dil: ${l.l || "?"}`, l.n]);
+		$("lumiVersions").replaceChildren(vs.length + ls.length ? lumiTable(["", "Oyuncu"], vs.concat(ls)) : el("div", "empty", "Henüz veri yok."));
+	} catch (e) {
+		say("lumiMsg", /admin_lumi_stats/.test(e.message) ? "Lumi tablosu yok: lumi/supabase/migrations/0001_analytics.sql çalıştırılmalı." : e.message, "err");
+	}
+}
+
+start();
+</script>
+</body>
+</html>
