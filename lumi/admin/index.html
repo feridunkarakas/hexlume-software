@@ -262,6 +262,7 @@ main { padding: 28px 36px 60px; max-width: 1160px; }
 		<label for="password">Şifre</label>
 		<input id="password" type="password" autocomplete="current-password">
 		<div style="margin-top:18px"><button class="primary" id="loginBtn" style="width:100%">Giriş yap</button></div>
+		<div style="margin-top:10px"><button class="ghost" id="linkBtn" style="width:100%">Şifresiz: e-postama giriş linki gönder</button></div>
 		<div class="msg" id="loginMsg"></div>
 	</div>
 </section>
@@ -382,7 +383,18 @@ async function rpc(fn, args, retried = false) {
 }
 
 
+// E-postadaki giriş / davet linki: Supabase oturumu adres çubuğunun # kısmında gelir (#access_token=...&refresh_token=...).
+function takeHashSession() {
+	const h = new URLSearchParams(location.hash.slice(1));
+	if (h.get("error_description")) { say("loginMsg", h.get("error_description"), "err"); history.replaceState(null, "", location.pathname); return; }
+	const at = h.get("access_token"), rt = h.get("refresh_token");
+	if (!at || !rt) return;
+	session = { access_token: at, refresh_token: rt, expires_at: Number(h.get("expires_at")) || (Date.now() / 1000 + Number(h.get("expires_in") || 3600)), email: "" };
+	saveSession();
+	history.replaceState(null, "", location.pathname);
+}
 async function start() {
+	takeHashSession();
 	loadSession();
 	if (!session) return showLogin();
 	scheduleRefresh();
@@ -409,6 +421,17 @@ $("loginBtn").onclick = async () => {
 		say("loginMsg", "");
 		await start();
 	} catch (e) { say("loginMsg", e.message === "Invalid login credentials" ? "E-posta ya da şifre hatalı." : e.message, "err"); }
+};
+$("linkBtn").onclick = async () => {
+	const email = $("email").value.trim();
+	if (!email) return say("loginMsg", "Önce e-postanı yaz.", "err");
+	say("loginMsg", "Gönderiliyor…");
+	try {
+		const r = await fetch(`${URL_BASE}/auth/v1/otp?redirect_to=${encodeURIComponent(location.origin + location.pathname)}`, {
+			method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify({ email, create_user: false }) });
+		if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.msg || d.error_description || ("HTTP " + r.status)); }
+		say("loginMsg", "Giriş linki e-postana gönderildi. Linke bu cihazda tıkla.");
+	} catch (e) { say("loginMsg", e.message, "err"); }
 };
 $("password").addEventListener("keydown", (e) => { if (e.key === "Enter") $("loginBtn").click(); });
 
