@@ -5,297 +5,172 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Lumi Admin</title>
-<!-- 2026-11-24: Lumi yönetim paneli. Kaynak: lumi/docs/admin/index.html; yayın: hexlume-software/lumi/admin/.
-     Sunucu: Lumi'nin kendi Supabase projesi, lumi/supabase/migrations/0001_analytics.sql (her istek sunucuda lumi_require_admin ile denetlenir).
-     Görünüm ve giriş kodu Hewrune panelinden (hewrune/docs/admin) alındı. Kullanıcı verisi yalnız textContent ile yazılır. -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- 2026-11-26: Sade panel (Feridun: "çok karışık, hiçbir şey anlamadım, daha profesyonel olsun").
+     Kaynak: lumi/docs/admin/index.html; yayın: hexlume-software/lumi/admin/.
+     Veri: lumi/supabase/migrations/0003_dashboard.sql (admin_lumi_dash; her istek sunucuda lumi_require_admin ile denetlenir).
+     Giriş kodu önceki panelden aynen alındı. Veriler yalnız textContent ile yazılır. -->
 <style>
 :root {
-	--bg: #0f0b1a; --bg2: #151025; --panel: #1b1530; --panel2: #231b3d; --panel3: #2c2350; --line: #342a55; --line2: #463a70;
-	--text: #efeafc; --muted: #a39bc2; --dim: #776f96;
-	--accent: #8b5cf6; --accent2: #5ab4ff; --good: #3fcf7f; --bad: #f05d5d; --gold: #f9c22b;
-	--radius: 18px; --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+	--bg: #f6f7f9; --card: #fff; --line: #e4e7ec; --line2: #d0d5dd;
+	--text: #101828; --muted: #5d6676; --dim: #8a93a3;
+	--blue: #2f6fed; --blue2: #b9cdf9; --green: #12805c; --red: #c4320a; --amber: #b54708;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: radial-gradient(1200px 600px at 80% -10%, #2a1a52 0%, transparent 60%), var(--bg); color: var(--text);
-	font: 15px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; }
-h1, h2, h3, .brand, .stat b, .ev-name { font-family: Fredoka, Inter, sans-serif; letter-spacing: .2px; }
-img.px { image-rendering: pixelated; }
-button { font: inherit; font-weight: 600; color: var(--text); background: var(--panel2); border: 1px solid var(--line2); border-radius: 12px;
-	padding: 9px 16px; cursor: pointer; transition: transform .08s, border-color .15s, background .15s; }
-button:hover { border-color: var(--accent); }
-button:active { transform: translateY(1px); }
-button.primary { background: linear-gradient(180deg, #9a6cff, #7646e8); border-color: #9a6cff; box-shadow: 0 4px 14px rgba(139, 92, 246, .35); }
-button.danger { background: linear-gradient(180deg, #e8555c, #c23a45); border-color: #f06a70; }
-button.ghost { background: transparent; }
-button.soft-danger { background: rgba(240, 93, 93, .12); border-color: rgba(240, 93, 93, .5); color: #ffb3b3; }
-button.soft-ok { background: rgba(63, 207, 127, .12); border-color: rgba(63, 207, 127, .5); color: #a6f0c6; }
-button:disabled { opacity: .5; cursor: default; transform: none; }
-input, select { font: inherit; color: var(--text); background: var(--bg2); border: 1px solid var(--line2); border-radius: 12px; padding: 10px 12px; width: 100%; }
-input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139, 92, 246, .25); }
-label { display: block; color: var(--muted); font-size: 13px; font-weight: 500; margin: 14px 0 6px; }
+body { background: var(--bg); color: var(--text); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+button { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--line2); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+button:hover { background: #f2f4f7; }
+button.primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+button.primary:hover { background: #2559c9; }
+button.link { border: 0; background: none; color: var(--blue); padding: 0; }
+input { font: inherit; color: var(--text); background: #fff; border: 1px solid var(--line2); border-radius: 8px; padding: 9px 11px; width: 100%; }
+input:focus { outline: 2px solid var(--blue2); border-color: var(--blue); }
+label { display: block; color: var(--muted); font-size: 14px; margin: 14px 0 6px; }
 .hidden { display: none !important; }
-.muted { color: var(--muted); }
-.small { font-size: 13px; }
-
-/* giriş */
-#login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
-.login-card { width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 28px; box-shadow: var(--shadow); }
-.login-card .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-.login-card .logo img { width: 48px; height: 48px; background: var(--panel2); border-radius: 14px; padding: 6px; }
-.login-card h1 { margin: 0; font-size: 26px; }
-
-/* iskelet */
-.shell { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
-aside { background: rgba(21, 16, 37, .85); border-right: 1px solid var(--line); padding: 20px 14px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 6px; }
-.brand { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; padding: 0 8px 18px; }
-.brand img { width: 38px; height: 38px; background: var(--panel2); border-radius: 12px; padding: 5px; }
-.brand small { display: inline-block; font: 600 11px Inter, sans-serif; color: #d9c8ff; background: rgba(139, 92, 246, .25); border: 1px solid rgba(139, 92, 246, .5); padding: 2px 8px; border-radius: 99px; margin-left: 2px; }
-nav#tabs { display: flex; flex-direction: column; gap: 4px; }
-nav#tabs button { display: flex; align-items: center; gap: 12px; text-align: left; background: transparent; border: 1px solid transparent; color: var(--muted); padding: 11px 12px; }
-nav#tabs button svg { width: 20px; height: 20px; flex: none; }
-nav#tabs button:hover { color: var(--text); background: var(--panel); }
-nav#tabs button.on { color: var(--text); background: var(--panel2); border-color: var(--line2); }
-nav#tabs button.on svg { color: var(--accent); }
-.side-foot { margin-top: auto; border-top: 1px solid var(--line); padding: 14px 8px 0; }
-.side-foot .who { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 10px; }
-main { padding: 28px 32px 60px; max-width: 1080px; width: 100%; }
-.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-.page-head h1 { font-size: 30px; margin: 0; }
-.page-head p { margin: 2px 0 0; color: var(--muted); }
-
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 18px; }
-.card h2 { font-size: 19px; margin: 0 0 4px; }
-.card .sub { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
-.card.danger-zone { border-color: rgba(240, 93, 93, .55); background: linear-gradient(180deg, rgba(240, 93, 93, .06), transparent 60%), var(--panel); }
-.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
-.row > * { flex: 1 1 160px; }
-.row > .fit { flex: 0 0 auto; }
-textarea { width: 100%; min-height: 70px; resize: vertical; font: inherit; color: inherit; background: var(--panel2); border: 1px solid var(--line2); border-radius: 10px; padding: 10px; }
-.grant-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
-.grant-grid label { margin: 0 0 4px; font-size: 12px; }
-
-/* özet */
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
-.stat { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 16px; position: relative; overflow: hidden; }
-.stat::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--c, var(--accent)); }
-.stat b { display: block; font-size: 30px; font-weight: 600; line-height: 1.1; }
-.stat span { color: var(--muted); font-size: 13px; }
-.live-box { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.live-box .ev-icon { width: 64px; height: 64px; }
-.live-box .info { flex: 1 1 220px; }
-
-/* etkinlik kartları */
-.ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-.ev-card { text-align: left; display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 16px; background: var(--panel2); border: 2px solid var(--line); min-height: 150px; }
-.ev-card:hover { border-color: var(--c); }
-.ev-card.sel { border-color: var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, transparent), transparent 70%), var(--panel2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent); }
-.ev-icon { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 22%, transparent); border: 2px solid color-mix(in srgb, var(--c) 70%, transparent); flex: none; }
-.ev-icon img { width: 62%; height: 62%; object-fit: contain; }
-.ev-name { font-size: 17px; font-weight: 600; }
-.ev-desc { color: var(--muted); font-size: 13px; font-weight: 400; line-height: 1.4; }
-.seg { display: flex; flex-wrap: wrap; gap: 6px; }
-.seg button { padding: 8px 14px; border-radius: 99px; background: var(--bg2); }
-.seg button.on { background: var(--accent); border-color: var(--accent); }
-.preview { display: flex; align-items: center; gap: 14px; background: var(--bg2); border: 1px dashed var(--line2); border-radius: 16px; padding: 14px; margin-top: 18px; }
-.preview .pill { display: flex; align-items: center; gap: 12px; background: #140e24; border: 3px solid var(--c); border-radius: 18px; padding: 8px 18px 8px 10px; box-shadow: 0 0 18px color-mix(in srgb, var(--c) 35%, transparent); }
-.preview .pill .ev-icon { width: 40px; height: 40px; }
-.preview .pill small { display: block; font-weight: 700; font-size: 11px; letter-spacing: .6px; color: color-mix(in srgb, var(--c) 60%, white); }
-.preview .pill b { font-family: Fredoka, sans-serif; font-size: 18px; }
-
-.list-item { display: flex; gap: 14px; align-items: flex-start; padding: 14px; border-radius: 14px; background: var(--panel2); border: 1px solid var(--line); margin-top: 10px; border-left: 4px solid var(--c, var(--line2)); }
-.list-item .grow { flex: 1 1 auto; min-width: 0; }
-.list-item .top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
-.list-item .meta { color: var(--muted); font-size: 13px; }
-.actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-.actions button { padding: 6px 12px; font-size: 13px; border-radius: 10px; }
-.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; margin-left: 8px; background: var(--bg2); border: 1px solid var(--line2); vertical-align: middle; }
-.badge.active { border-color: var(--good); color: #a6f0c6; }
-.badge.active::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 8px var(--good); }
-.badge.scheduled { border-color: var(--accent2); color: #b6dcff; }
-.badge.ended { color: var(--dim); }
-.badge.banned { border-color: var(--bad); color: #ffb3b3; }
-.badge.hidden-b { border-color: var(--gold); color: #ffe08a; }
-.badge.gc { border-color: var(--good); color: #a6f0c6; }
-.section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--dim); margin: 18px 0 2px; }
-.avatar { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font: 700 18px Fredoka, sans-serif; background: var(--panel3); flex: none; }
-.empty { text-align: center; color: var(--muted); padding: 26px 10px; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--line2); border-radius: 99px; padding: 4px 6px 4px 12px; font-size: 13px; }
-.chip button { padding: 0 8px; border-radius: 99px; font-size: 13px; line-height: 20px; }
-.chip.allow { border-color: rgba(63, 207, 127, .5); }
-.toggle { display: inline-flex; align-items: center; gap: 10px; }
-.switch { width: 50px; height: 28px; border-radius: 99px; background: var(--line2); position: relative; border: none; padding: 0; }
-.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: white; transition: left .15s; }
-.switch.on { background: var(--good); }
-.switch.on::after { left: 25px; }
-pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0 0; font-size: 12px; color: var(--muted); background: var(--bg2); border-radius: 10px; padding: 8px 10px; }
 .msg { min-height: 20px; margin-top: 10px; font-size: 14px; }
-.msg.err { color: #ff9d8a; }
-.msg.good { color: #a6f0c6; }
+.msg.err { color: var(--red); }
 
-/* bildirim + modal */
-#toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: var(--panel3); border: 1px solid var(--line2); border-radius: 14px; padding: 12px 18px; box-shadow: var(--shadow); opacity: 0; transition: .2s; pointer-events: none; z-index: 30; max-width: calc(100% - 32px); }
-#toast.show { opacity: 1; transform: translateX(-50%); }
-#toast.err { border-color: var(--bad); }
-#toast.good { border-color: var(--good); }
-#modal { position: fixed; inset: 0; background: rgba(8, 5, 16, .7); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; z-index: 40; }
-#modal .box { width: 100%; max-width: 440px; background: var(--panel); border: 1px solid var(--line2); border-radius: 22px; padding: 22px; box-shadow: var(--shadow); }
-#modal h3 { margin: 0 0 8px; font-size: 21px; }
-#modal p { margin: 0; color: var(--muted); }
-#modal .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+#login { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+.login-card { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 28px; }
+.login-card h1 { margin: 0 0 2px; font-size: 22px; }
 
-/* oyuncu incele (0016_save_history) */
-#inspect { position: fixed; inset: 0; background: rgba(8, 5, 16, .7); backdrop-filter: blur(4px); z-index: 35; overflow-y: auto; padding: 24px 16px; }
-#inspect .box { max-width: 860px; margin: 0 auto; background: var(--bg2); border: 1px solid var(--line2); border-radius: 22px; padding: 22px; box-shadow: var(--shadow); }
-#inspect .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
-#inspect .head h2 { margin: 0; font-size: 24px; }
-#inspect .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-#inspect .stat b { font-size: 22px; }
-.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
-.tbl th { text-align: left; color: var(--dim); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); }
-.tbl td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.tbl-wrap { overflow-x: auto; }
-.note { color: var(--dim); font-size: 12px; margin-top: 8px; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 24px 64px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.top h1 { font-size: 24px; margin: 0; }
+.top .right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.who { color: var(--muted); font-size: 14px; }
+.seg { display: inline-flex; border: 1px solid var(--line2); border-radius: 8px; overflow: hidden; background: #fff; }
+.seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line2); padding: 7px 12px; }
+.seg button:last-child { border-right: 0; }
+.seg button.on { background: var(--text); color: #fff; }
+.lead { color: var(--muted); margin: 0 0 20px; }
 
-@media (max-width: 820px) {
-	.shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; }
-	aside { position: sticky; top: 0; height: auto; z-index: 10; flex-direction: row; align-items: center; padding: 10px 12px; gap: 8px; border-right: 0; border-bottom: 1px solid var(--line); }
-	.brand { padding: 0; font-size: 18px; }
-	.brand img { width: 32px; height: 32px; }
-	.brand span, .brand small { display: none; }
-	nav#tabs { flex-direction: row; overflow-x: auto; flex: 1; scrollbar-width: none; }
-	nav#tabs button { flex: none; padding: 8px 10px; gap: 6px; font-size: 14px; }
-	nav#tabs button span { display: none; }
-	nav#tabs button.on span { display: inline; }
-	.side-foot { margin: 0; border: 0; padding: 0; }
-	.side-foot .who { display: none; }
-	.side-foot button { padding: 8px 10px; }
-	main { padding: 18px 16px 50px; }
-	.page-head h1 { font-size: 24px; }
+.kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.kpi .t { font-size: 14px; color: var(--muted); }
+.kpi .v { font-size: 30px; font-weight: 650; line-height: 1.2; margin: 4px 0; font-variant-numeric: tabular-nums; }
+.kpi .s { font-size: 13px; color: var(--muted); }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+.card h2 { font-size: 17px; margin: 0; }
+.card .sub { color: var(--muted); font-size: 14px; margin: 2px 0 16px; }
+.say { background: #f2f6ff; border-radius: 8px; padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid2 > .card { margin-bottom: 0; }
+.empty { color: var(--dim); padding: 18px 0; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-weight: 600; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th.n, td.n { text-align: right; }
+th.sort { cursor: pointer; }
+th.sort:hover { color: var(--text); }
+td { padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+.wrap { overflow-x: auto; }
+.tag { display: inline-block; font-size: 12px; padding: 1px 7px; border-radius: 99px; background: #f2f4f7; color: var(--muted); }
+.tag.buy { background: #e7f6ef; color: var(--green); }
+
+.hbar { display: grid; grid-template-columns: 130px 1fr 110px; align-items: center; gap: 10px; margin: 7px 0; font-size: 14px; }
+.hbar .track { height: 12px; background: #f2f4f7; border-radius: 6px; overflow: hidden; }
+.hbar .fill { height: 100%; background: var(--blue); border-radius: 6px; }
+.hbar .n { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rate { display: inline-flex; align-items: center; gap: 8px; }
+.rate .track { width: 70px; height: 8px; background: #f2f4f7; border-radius: 4px; overflow: hidden; }
+.rate .fill { height: 100%; border-radius: 4px; }
+
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: 220px; }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+#tip { position: fixed; pointer-events: none; background: var(--text); color: #fff; font-size: 13px; padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .1s; z-index: 20; }
+.foot { color: var(--dim); font-size: 13px; margin-top: 8px; }
+
+@media (max-width: 900px) {
+	.kpis { grid-template-columns: repeat(2, 1fr); }
+	.kpis .kpi:last-child { grid-column: 1 / -1; }
+	.grid2 { grid-template-columns: 1fr; }
+	main { padding: 16px 14px 48px; }
+	.hbar { grid-template-columns: 100px 1fr 90px; }
 }
-
-/* ===== 2026-11-20 modern tema (Feridun: "admin paneli biraz daha modern olsun, karıştı") =====
-   Nötr koyu yüzeyler, tek vurgu rengi, düz düğmeler, Inter; oyuncu satırında yalnız ana işlemler, gerisi "⋯" menüsünde. */
-:root {
-	--bg: #0b0c0f; --bg2: #101216; --panel: #13151a; --panel2: #181b21; --panel3: #20242c; --line: #23272f; --line2: #2e333d;
-	--text: #e8eaef; --muted: #9097a3; --dim: #6b7280;
-	--accent: #6d8bff; --accent2: #5ab4ff; --good: #34c38f; --bad: #ef5b5b; --gold: #e6b450;
-	--radius: 12px; --shadow: 0 8px 24px rgba(0, 0, 0, .35);
-}
-body { background: var(--bg); font-size: 14px; }
-h1, h2, h3, .brand, .stat b, .ev-name, .avatar, .preview .pill b { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; letter-spacing: -.01em; }
-button { border-radius: 8px; padding: 7px 13px; font-weight: 550; background: var(--panel2); border-color: var(--line2); }
-button:hover { border-color: #3a404c; background: var(--panel3); }
-button.primary { background: var(--accent); border-color: var(--accent); box-shadow: none; color: #fff; }
-button.primary:hover { background: #5b7bff; }
-button.danger { background: transparent; border-color: rgba(239, 91, 91, .45); color: #ff8f8f; }
-button.danger:hover { background: rgba(239, 91, 91, .12); border-color: var(--bad); }
-#modal button.danger, #mYes.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
-button.soft-danger { background: transparent; border-color: rgba(239, 91, 91, .35); color: #ff9c9c; }
-button.soft-ok { background: transparent; border-color: rgba(52, 195, 143, .4); color: #8fe3c2; }
-button.ghost { border-color: transparent; color: var(--muted); }
-button.ghost:hover { color: var(--text); background: var(--panel2); }
-input, select, textarea { border-radius: 8px; background: var(--bg2); border-color: var(--line2); padding: 9px 11px; }
-input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(109, 139, 255, .2); }
-.login-card, #modal .box, #inspect .box { border-radius: 14px; }
-aside { background: var(--bg2); padding: 18px 12px; }
-.brand { font-size: 16px; font-weight: 650; padding: 0 8px 16px; }
-.brand img { width: 30px; height: 30px; border-radius: 8px; padding: 3px; }
-.brand small { background: var(--panel3); border-color: var(--line2); color: var(--muted); font-weight: 600; }
-nav#tabs { gap: 2px; }
-nav#tabs button { padding: 8px 10px; gap: 10px; font-weight: 500; border-radius: 8px; }
-nav#tabs button svg { width: 17px; height: 17px; }
-nav#tabs button.on { background: var(--panel3); border-color: transparent; }
-main { padding: 28px 36px 60px; max-width: 1160px; }
-.page-head { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-.page-head h1 { font-size: 22px; font-weight: 650; }
-.page-head p { font-size: 13px; }
-.card { border-radius: var(--radius); padding: 18px 20px; }
-.card h2 { font-size: 15px; font-weight: 650; }
-.card.danger-zone { background: var(--panel); border-color: rgba(239, 91, 91, .35); }
-.stats { gap: 10px; }
-.stat { border-radius: 10px; padding: 14px 16px; }
-.stat::before { display: none; }
-.stat b { font-size: 24px; font-weight: 650; }
-.stat span { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
-.list-item { border-radius: 10px; background: var(--panel); border-left-width: 1px; border-left-color: var(--line); padding: 14px 16px; gap: 14px; position: relative; }
-.list-item::before { content: ""; position: absolute; left: -1px; top: 12px; bottom: 12px; width: 3px; border-radius: 3px; background: var(--c); opacity: .9; }
-.list-item .top b { font-size: 14px; font-weight: 650; }
-.list-item .meta { font-size: 12.5px; }
-.avatar { width: 36px; height: 36px; border-radius: 50%; font-size: 14px; background: var(--panel3); color: var(--muted); }
-.actions { gap: 6px; margin-top: 10px; align-items: center; }
-.actions button { padding: 5px 11px; font-size: 12.5px; border-radius: 7px; }
-.badge { font-size: 11px; font-weight: 600; padding: 1px 8px; background: transparent; }
-.ev-card { border-radius: 10px; border-width: 1px; }
-.ev-card.sel { box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 60%, transparent); }
-.seg button { border-radius: 8px; }
-.seg button.on { background: var(--accent); }
-.tbl th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; }
-.tbl tbody tr:hover td { background: var(--panel2); }
-#toast { border-radius: 10px; background: var(--panel2); }
-/* "⋯" işlem menüsü */
-.more { position: relative; }
-.more > summary { list-style: none; cursor: pointer; padding: 4px 10px; border: 1px solid var(--line2); border-radius: 7px; color: var(--muted); font-weight: 700; line-height: 20px; user-select: none; }
-.more > summary::-webkit-details-marker { display: none; }
-.more > summary:hover { color: var(--text); background: var(--panel3); }
-.more[open] > summary { color: var(--text); background: var(--panel3); }
-.more .menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 210px; background: var(--panel2); border: 1px solid var(--line2); border-radius: 10px; padding: 6px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 2px; }
-.more .menu button { text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; font-size: 13px; color: var(--text); }
-.more .menu button:hover { background: var(--panel3); }
-.more .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
-.more .menu button.danger { color: #ff8f8f; }
-.more .menu button.danger:hover { background: rgba(239, 91, 91, .12); }
-</style>
-<style>
-.shell.single { display: block; }
-.shell.single main { max-width: 1160px; margin: 0 auto; }
-.topbar { display: flex; justify-content: space-between; align-items: center; padding: 0 0 18px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
-.topbar b { font-size: 18px; }
-.page-head .row { flex-wrap: nowrap; }
-.topbar .who { display: inline; margin: 0; padding: 0; color: var(--muted); font-size: 13px; }
-.topbar .row { flex-wrap: nowrap; }
-@media (max-width: 820px) { .topbar .who { display: none; } #lumiStats { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
 
 <section id="login">
 	<div class="login-card">
-		<div class="logo"><div><h1>Lumi</h1><span class="muted small">Yönetim paneli</span></div></div>
+		<h1>Lumi</h1><div style="color:var(--muted)">Yönetim paneli</div>
 		<label for="email">E-posta</label>
 		<input id="email" type="email" autocomplete="username">
 		<label for="password">Şifre</label>
 		<input id="password" type="password" autocomplete="current-password">
 		<div style="margin-top:18px"><button class="primary" id="loginBtn" style="width:100%">Giriş yap</button></div>
-		<div style="margin-top:10px"><button class="ghost" id="linkBtn" style="width:100%">Şifresiz: e-postama giriş linki gönder</button></div>
+		<div style="margin-top:10px"><button id="linkBtn" style="width:100%">Şifresiz: e-postama giriş linki gönder</button></div>
 		<div class="msg" id="loginMsg"></div>
 	</div>
 </section>
 
-<div id="app" class="shell single hidden">
-	<main>
-		<div class="topbar"><b>Lumi · Admin</b><div class="row" style="gap:10px;align-items:center"><span class="who" id="who"></span><button id="logout" class="ghost">Çıkış</button></div></div>
-		<!-- LUMI (2026-11-24, supabase/migrations/0018_lumi_analytics.sql): anonim oyun ölçümü -->
-		<section data-page="lumi">
-			<div class="page-head"><div><h1>Lumi</h1><p>Kurulum, geri gelme, bölüm hunisi ve oyun içi olaylar (anonim)</p></div>
-				<div class="row" style="gap:8px"><select id="lumiDays" style="width:auto"><option value="7">Son 7 gün</option><option value="14" selected>Son 14 gün</option><option value="30">Son 30 gün</option><option value="90">Son 90 gün</option></select><button id="refreshLumi" class="ghost">Yenile</button></div></div>
-			<div class="msg" id="lumiMsg"></div>
-			<div class="stats" id="lumiStats"></div>
-			<div class="card"><h2>Günlük</h2><p class="sub">Yeni kurulum ve o gün oynayan</p><div id="lumiDaily"></div></div>
-			<div class="card"><h2>Geri gelme</h2><p class="sub">Kurulum gününe göre: ertesi gün (D1), 3. gün (D3), 7. gün (D7) yeniden açanlar</p><div id="lumiCohorts"></div></div>
-			<div class="card"><h2>Bölüm hunisi</h2><p class="sub">Bu aralıkta gelen oyuncuların geçtiği en yüksek bölüm</p><div id="lumiReach"></div></div>
-			<div class="card"><h2>Bölümler</h2><p class="sub">Başlayan / bitiren oyuncu, kayıp, yarıda bırakma, ortalama süre, ipucu (ilk 60 bölüm)</p><div id="lumiLevels" style="overflow-x:auto"></div></div>
-			<div class="card"><h2>Olaylar</h2><p class="sub">Modlar, reklamlar, satın almalar, ipucu</p><div id="lumiEvents"></div></div>
-			<div class="card"><h2>Sürüm ve dil</h2><div id="lumiVersions"></div></div>
-		</section>
+<div id="app" class="hidden">
+<main>
+	<div class="top">
+		<h1>Lumi</h1>
+		<div class="right">
+			<div class="seg" id="range"><button data-d="1">Bugün</button><button data-d="7">7 gün</button><button data-d="14" class="on">14 gün</button><button data-d="30">30 gün</button><button data-d="90">90 gün</button></div>
+			<button id="refresh">Yenile</button>
+			<span class="who" id="who"></span>
+			<button id="logout">Çıkış</button>
+		</div>
+	</div>
+	<p class="lead" id="lead">Yükleniyor…</p>
+	<div class="msg err" id="lumiMsg"></div>
 
-	</main>
+	<div class="kpis" id="kpis"></div>
+
+	<div class="card">
+		<h2>Her gün kaç kişi oynadı?</h2>
+		<p class="sub">Koyu mavi: o gün ilk kez gelenler. Açık mavi: daha önce gelip tekrar açanlar. Çubuğun üstüne gelince sayılar görünür.</p>
+		<div class="chart" id="chart"></div>
+		<div class="legend"><span><i style="background:var(--blue)"></i>Yeni oyuncu</span><span><i style="background:var(--blue2)"></i>Geri gelen oyuncu</span></div>
+	</div>
+
+	<div class="grid2">
+		<div class="card">
+			<h2>Oyuncular hangi bölümde?</h2>
+			<p class="sub">Herkesin şu an bulunduğu bölüm (oyunu açan tüm oyuncular)</p>
+			<div id="progSay"></div>
+			<div id="prog"></div>
+		</div>
+		<div class="card">
+			<h2>Para ve reklam</h2>
+			<p class="sub">Seçili tarih aralığında</p>
+			<div id="money"></div>
+		</div>
+	</div>
+	<div style="height:16px"></div>
+
+	<div class="card">
+		<h2>Oyuncuların takıldığı bölümler</h2>
+		<p class="sub">Başlayanların en az bitirebildiği bölümler. Bitirme oranı düşükse bölüm zor ya da kafa karıştırıcı olabilir.</p>
+		<div id="hardSay"></div>
+		<div class="wrap" id="hard"></div>
+	</div>
+
+	<div class="card">
+		<h2>Oyuncular</h2>
+		<p class="sub">Her satır bir telefon (kimlik anonim). Başlığa tıklayınca o sütuna göre sıralanır.</p>
+		<div class="wrap" id="players"></div>
+		<div id="moreBox" style="margin-top:10px"></div>
+	</div>
+
+	<div class="grid2">
+		<div class="card"><h2>Modlar</h2><p class="sub">Ana bölümler dışında hangi modlar oynanıyor</p><div id="modes"></div></div>
+		<div class="card"><h2>Cihaz ve sürüm</h2><p class="sub">Oyuncuların son kullandığı sürüm</p><div id="plat"></div></div>
+	</div>
+
+	<p class="foot">Veriler 25 Kasım 2026'dan beri tutuluyor ve yalnız sürüm 1.0.1 ve sonrasından geliyor; eski sürümü kullananlar güncelleyene kadar görünmez.
+	Oyunun içindeki sıralama listesi şimdilik örnek oyunculardan oluşuyor, gerçek oyuncular yalnız bu panelde.</p>
+</main>
 </div>
-<div id="toast"></div>
+<div id="tip"></div>
 
 <script>
 const URL_BASE = "https://cgxjsinsejdkvleyyiqi.supabase.co";
@@ -444,67 +319,214 @@ $("linkBtn").onclick = async () => {
 };
 $("password").addEventListener("keydown", (e) => { if (e.key === "Enter") $("loginBtn").click(); });
 
+// ===== Sade panel (0003_dashboard.sql, admin_lumi_dash) =====
+const PLACE = { hint: "İpucu almak için", revive: "Can bitince devam için", x2: "Ödülü 2 katına çıkarmak için", spin: "Çark çevirmek için",
+	shop: "Mağazada bedava altın için", other: "Diğer" };
+const MODE = { daily: "Günlük bulmaca", rush: "Hız Turu", usta: "Usta", zen: "Rahat", relax: "Rahat", marathon: "Maraton" };
+const PRODUCT = { noads: "Reklamları kaldır", starter: "Başlangıç paketi", piggy: "Kumbara", coins500: "500 altın", coins1500: "1500 altın",
+	coins5000: "5000 altın", chest1: "Sandık", chest2: "Büyük sandık" };
+const PLAT = { ios: "iPhone", android: "Android", macos: "Mac (test)", windows: "Windows (test)" };
+let days = 14, data = null, sortKey = "cur", showAll = false;
+
+const fmt = (n) => Number(n || 0).toLocaleString("tr-TR");
+const pctN = (a, b) => b ? Math.round(100 * a / b) : null;
 function dur(sec) {
-	if (sec == null) return "-";
-	const m = Math.round(Number(sec) / 60);
-	if (m < 1) return `${Math.round(Number(sec))} sn`;
+	sec = Number(sec || 0);
+	if (sec < 60) return sec ? `${Math.round(sec)} sn` : "-";
+	const m = Math.round(sec / 60);
 	return m < 60 ? `${m} dk` : `${Math.floor(m / 60)} sa ${m % 60} dk`;
 }
-
-// --- Lumi (0018_lumi_analytics) ---
-$("refreshLumi").onclick = () => loadLumi();
-$("lumiDays").onchange = () => loadLumi();
-const LUMI_EV = { first_open: "İlk açılış", session_start: "Oturum", level_win: "Bölüm bitti", level_fail: "Canlar bitti", level_quit: "Yarıda bıraktı",
-	mode_start: "Mod başladı", hint_used: "İpucu", wand_used: "Değnek", ad_request: "Reklam istendi", ad_watched: "Reklam izlendi",
-	ad_skipped: "Reklam yarıda", ad_not_ready: "Reklam hazır değil", purchase: "Satın alma", tut_step: "Öğretici adımı" };
-const LUMI_KEY = { level: "Bölüm", daily: "Günlük", rush: "Hız Turu", usta: "Usta", zen: "Rahat", marathon: "Maraton",
-	hint: "ipucu", wand: "değnek", x2: "2x ödül", revive: "devam", spin: "çark", shop: "mağaza", other: "diğer" };
-function pct(a, b) { return b ? Math.round(100 * a / b) + "%" : "-"; }
-function lumiTable(head, rows) {
-	const tb = document.createElement("table"); tb.style.cssText = "width:100%;border-collapse:collapse;font-size:14px";
-	const tr = document.createElement("tr");
-	head.forEach((h) => { const th = el("th", null, h); th.style.cssText = "text-align:left;color:var(--muted);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line)"; tr.append(th); });
-	tb.append(tr);
-	rows.forEach((r) => { const row = document.createElement("tr"); r.forEach((c) => { const td = el("td", null, String(c)); td.style.cssText = "padding:6px 8px;border-bottom:1px solid var(--line)"; row.append(td); }); tb.append(row); });
+const dayName = (d) => new Date(d + "T12:00:00").toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+function ago(ts) {
+	const s = (Date.now() - new Date(ts).getTime()) / 1000;
+	if (s < 120) return "şimdi";
+	if (s < 3600) return `${Math.round(s / 60)} dk önce`;
+	if (s < 86400) return `${Math.round(s / 3600)} saat önce`;
+	const d = Math.round(s / 86400);
+	return d === 1 ? "dün" : `${d} gün önce`;
+}
+function table(cols, rows) {
+	// cols: [{t, n (sağa yasla), k (sıralama anahtarı)}]; rows: hücre dizileri (metin ya da düğüm)
+	const tb = el("table"), hr = el("tr");
+	cols.forEach((c) => {
+		const th = el("th", (c.n ? "n " : "") + (c.k ? "sort" : ""), c.t + (c.k && c.k === sortKey ? " ↓" : ""));
+		if (c.k) th.onclick = () => { sortKey = c.k; renderPlayers(); };
+		hr.append(th);
+	});
+	const thead = el("thead"); thead.append(hr); tb.append(thead);
+	const body = el("tbody");
+	rows.forEach((r) => { const tr = el("tr"); r.forEach((v, i) => { const td = el("td", cols[i].n ? "n" : ""); v instanceof Node ? td.append(v) : (td.textContent = String(v)); tr.append(td); }); body.append(tr); });
+	tb.append(body);
 	return tb;
 }
-function lumiBars(box, list, label, val) {
-	if (!list.length) return box.replaceChildren(el("div", "empty", "Henüz veri yok."));
-	const max = Math.max(1, ...list.map(val)), total = list.reduce((s, x) => s + val(x), 0);
+function hbars(box, list) {
+	// list: [{label, n}]
+	const max = Math.max(1, ...list.map((x) => x.n)), total = list.reduce((s, x) => s + x.n, 0);
 	box.replaceChildren(...list.map((x) => {
-		const row = el("div", "row"); row.style.alignItems = "center"; row.style.margin = "4px 0";
-		const lab = el("span", "meta", label(x)); lab.style.flex = "0 0 110px";
-		const bar = el("div"); bar.style.cssText = `flex:1 1 auto;height:14px;border-radius:7px;background:var(--accent);max-width:${Math.max(2, 100 * val(x) / max)}%`;
-		const n = el("span", "meta", `${val(x)} (${pct(val(x), total)})`); n.style.flex = "0 0 90px"; n.style.textAlign = "right";
-		row.append(lab, bar, n); return row;
+		const row = el("div", "hbar"), tr = el("div", "track"), f = el("div", "fill");
+		f.style.width = (x.n ? Math.max(1.5, 100 * x.n / max) : 0) + "%"; tr.append(f);
+		row.append(el("span", null, x.label), tr, el("span", "n", `${fmt(x.n)} kişi · %${pctN(x.n, total) ?? 0}`));
+		return row;
 	}));
 }
-async function loadLumi() {
-	say("lumiMsg", "Yükleniyor…");
-	try {
-		const s = await rpc("admin_lumi_stats", { p_days: Number($("lumiDays").value) });
-		say("lumiMsg", "");
-		const coh = s.cohorts || [], size = coh.reduce((a, c) => a + Number(c.size), 0);
-		const d1 = coh.reduce((a, c) => a + Number(c.d1), 0);
-		const items = [[s.installs, "Yeni kurulum", "#f9c22b"], [s.active, "Oynayan", "#3fcf7f"], [pct(d1, size), "D1 geri gelme", "#5ab4ff"],
-			[dur(s.avg_session_secs), "Ort. oturum", "#8b5cf6"], [dur(s.avg_daily_secs), "Günlük oyun süresi", "#ff7a5c"], [s.all_installs, "Toplam kurulum", "#a39bc2"]];
-		$("lumiStats").replaceChildren(...items.map(([v, t, c]) => { const d = el("div", "stat"); d.style.setProperty("--c", c);
-			d.append(el("b", null, typeof v === "number" ? v.toLocaleString("tr-TR") : String(v ?? "-")), el("span", null, t)); return d; }));
-		const day = (x) => new Date(x + "T12:00:00").toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
-		$("lumiDaily").replaceChildren(lumiTable(["Gün", "Yeni kurulum", "Oynayan", "Biten bölüm"], (s.daily || []).slice().reverse().map((x) => [day(x.day), x.installs, x.dau, x.wins])));
-		$("lumiCohorts").replaceChildren(coh.length ? lumiTable(["Kurulum günü", "Kişi", "D1", "D3", "D7"], coh.slice().reverse().map((c) => [day(c.day), c.size, pct(c.d1, c.size), pct(c.d3, c.size), pct(c.d7, c.size)])) : el("div", "empty", "Henüz veri yok."));
-		lumiBars($("lumiReach"), s.reach || [], (x) => x.top ? `Bölüm ${x.top}` : "Hiç bitirmedi", (x) => Number(x.n));
-		const lv = s.levels || [];
-		$("lumiLevels").replaceChildren(lv.length ? lumiTable(["Bölüm", "Başlayan", "Bitiren", "Bitirme", "Kayıp", "Bıraktı", "Ort. süre", "İpucu"],
-			lv.map((x) => [x.level, x.started, x.won, pct(x.won, x.started), x.fails, x.quits, x.avg_secs == null ? "-" : x.avg_secs + " sn", x.hints])) : el("div", "empty", "Henüz veri yok."));
-		const ev = s.events || [];
-		$("lumiEvents").replaceChildren(ev.length ? lumiTable(["Olay", "Ayrıntı", "Kez", "Oyuncu"], ev.map((e) => [LUMI_EV[e.name] || e.name, LUMI_KEY[e.key] || e.key || "", e.count, e.users])) : el("div", "empty", "Henüz veri yok."));
-		const vs = (s.versions || []).map((v) => [`${v.v || "?"} · ${v.p || "?"}`, v.n]), ls = (s.locales || []).map((l) => [`Dil: ${l.l || "?"}`, l.n]);
-		$("lumiVersions").replaceChildren(vs.length + ls.length ? lumiTable(["", "Oyuncu"], vs.concat(ls)) : el("div", "empty", "Henüz veri yok."));
-	} catch (e) {
-		say("lumiMsg", /admin_lumi_stats/.test(e.message) ? "Lumi tablosu yok: lumi/supabase/migrations/0001_analytics.sql çalıştırılmalı." : e.message, "err");
-	}
+function rate(p) {
+	const w = el("span", "rate"), tr = el("span", "track"), f = el("span", "fill");
+	f.style.width = (p ?? 0) + "%"; f.style.background = p == null ? "transparent" : p < 50 ? "var(--red)" : p < 75 ? "var(--amber)" : "var(--green)";
+	tr.append(f); w.append(tr, el("span", null, p == null ? "-" : `%${p}`));
+	return w;
 }
+function kpi(t, v, s) { const d = el("div", "kpi"); d.append(el("div", "t", t), el("div", "v", v), el("div", "s", s)); return d; }
+const tip = $("tip");
+function showTip(e, text) { tip.textContent = text; tip.style.opacity = 1; tip.style.left = (e.clientX + 12) + "px"; tip.style.top = (e.clientY - 34) + "px"; }
+function hideTip() { tip.style.opacity = 0; }
+
+document.querySelectorAll("#range button").forEach((b) => b.onclick = () => {
+	document.querySelectorAll("#range button").forEach((x) => x.classList.toggle("on", x === b));
+	days = Number(b.dataset.d); loadLumi();
+});
+$("refresh").onclick = () => loadLumi();
+
+async function loadLumi() {
+	$("lumiMsg").textContent = "";
+	try {
+		data = await rpc("admin_lumi_dash", { p_days: days });
+	} catch (e) {
+		$("lumiMsg").textContent = /admin_lumi_dash/.test(e.message) ? "Panel fonksiyonu yok: lumi/supabase/migrations/0003_dashboard.sql Supabase'de çalıştırılmalı." : e.message;
+		$("lead").textContent = "";
+		return;
+	}
+	render();
+}
+
+function render() {
+	const s = data, period = days === 1 ? "bugün" : `son ${days} günde`;
+	$("lead").textContent = `${period[0].toUpperCase() + period.slice(1)} ${fmt(s.active)} kişi oynadı, bunların ${fmt(s.new)} tanesi yeni. Şu ana kadar toplam ${fmt(s.players)} oyuncu.`;
+
+	const rp = pctN(s.ret_back, s.ret_base);
+	$("kpis").replaceChildren(
+		kpi("Toplam oyuncu", fmt(s.players), "Oyunu en az bir kez açan telefon"),
+		kpi("Bugün oynayan", fmt(s.today), "Bugün oyunu açan kişi"),
+		kpi("Ertesi gün geri gelen", rp == null ? "-" : `%${rp}`, s.ret_base ? `Yeni gelen ${fmt(s.ret_base)} kişiden ${fmt(s.ret_back)} tanesi ertesi gün tekrar açtı` : "Henüz ertesi günü gelmiş yeni oyuncu yok"),
+		kpi("Günlük oyun süresi", dur(s.avg_secs), "Oynayan biri bir günde ortalama bu kadar oynuyor"),
+		kpi("En ileri oyuncu", s.top_level ? `Bölüm ${fmt(s.top_level)}` : "-", "Şu an en ileride olan oyuncunun bölümü"));
+
+	renderChart(s.daily || []);
+	renderProgress(s.progress || []);
+	renderMoney(s);
+	renderHard(s.levels || []);
+	renderPlayers();
+	const modes = s.modes || [];
+	$("modes").replaceChildren(modes.length ? table([{ t: "Mod" }, { t: "Oynanma", n: 1 }, { t: "Oyuncu", n: 1 }], modes.map((m) => [MODE[m.k] || m.k || "?", fmt(m.n), fmt(m.u)])) : el("div", "empty", "Bu aralıkta mod oynanmadı."));
+	const pl = s.platforms || [];
+	$("plat").replaceChildren(pl.length ? table([{ t: "Cihaz" }, { t: "Sürüm" }, { t: "Oyuncu", n: 1 }], pl.map((p) => [PLAT[p.p] || p.p || "?", p.v || "?", fmt(p.n)])) : el("div", "empty", "Veri yok."));
+}
+
+function renderChart(daily) {
+	const box = $("chart");
+	if (!daily.length || !daily.some((d) => d.active)) return box.replaceChildren(el("div", "empty", "Bu aralıkta kimse oynamadı."));
+	const W = Math.max(320, box.clientWidth || 1000), H = 220, L = 34, B = 26, T = 10, n = daily.length;
+	const max = Math.max(1, ...daily.map((d) => d.active));
+	const step = Math.max(1, Math.ceil(max / 4)), top = step * Math.ceil(max / step);
+	const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+	svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+	const mk = (tag, a) => { const e = document.createElementNS(ns, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+	const y = (v) => T + (H - T - B) * (1 - v / top);
+	for (let v = 0; v <= top; v += step) {
+		svg.append(mk("line", { x1: L, x2: W, y1: y(v), y2: y(v), stroke: "#e4e7ec", "stroke-width": 1 }));
+		const t = mk("text", { x: L - 8, y: y(v) + 4, "text-anchor": "end", "font-size": 12, fill: "#8a93a3" }); t.textContent = v; svg.append(t);
+	}
+	const slot = (W - L) / n, bw = Math.min(46, slot * 0.66);
+	const every = Math.ceil(n / Math.max(2, Math.floor(W / 70)));
+	daily.forEach((d, i) => {
+		const x = L + slot * i + (slot - bw) / 2, ret = Math.max(0, d.active - d.new), nw = Math.min(d.new, d.active);
+		const g = mk("g", {});
+		g.append(mk("rect", { x, y: y(d.active), width: bw, height: y(nw) - y(d.active), fill: "#b9cdf9", rx: 2 }));
+		g.append(mk("rect", { x, y: y(nw), width: bw, height: y(0) - y(nw), fill: "#2f6fed", rx: 2 }));
+		g.append(mk("rect", { x: L + slot * i, y: T, width: slot, height: H - T - B, fill: "transparent" }));
+		const text = `${dayName(d.day)}: ${d.active} kişi oynadı (${nw} yeni, ${ret} geri gelen), ${d.wins} bölüm bitirildi`;
+		g.addEventListener("mousemove", (e) => showTip(e, text)); g.addEventListener("mouseleave", hideTip);
+		svg.append(g);
+		if (i % every === 0 || i === n - 1) {
+			const t = mk("text", { x: L + slot * i + slot / 2, y: H - 6, "text-anchor": "middle", "font-size": 12, fill: "#8a93a3" });
+			t.textContent = dayName(d.day); svg.append(t);
+		}
+	});
+	box.replaceChildren(svg);
+}
+
+function renderProgress(prog) {
+	const buckets = [[1, 1, "Bölüm 1"], [2, 5, "Bölüm 2-5"], [6, 10, "Bölüm 6-10"], [11, 25, "Bölüm 11-25"], [26, 50, "Bölüm 26-50"],
+		[51, 100, "Bölüm 51-100"], [101, 200, "Bölüm 101-200"], [201, 1e9, "Bölüm 201+"]];
+	const total = prog.reduce((s, x) => s + Number(x.n), 0);
+	if (!total) { $("progSay").replaceChildren(); return $("prog").replaceChildren(el("div", "empty", "Henüz veri yok.")); }
+	const list = buckets.map(([a, b, label]) => ({ label, n: prog.filter((x) => Math.max(1, x.cur) >= a && Math.max(1, x.cur) <= b).reduce((s, x) => s + Number(x.n), 0) }));
+	while (list.length > 4 && list[list.length - 1].n === 0) list.pop();
+	hbars($("prog"), list);
+	// ortanca
+	let acc = 0, med = 1;
+	for (const x of prog) { acc += Number(x.n); if (acc >= total / 2) { med = Math.max(1, x.cur); break; } }
+	const past10 = prog.filter((x) => x.cur > 10).reduce((s, x) => s + Number(x.n), 0);
+	$("progSay").replaceChildren(el("div", "say", `Oyuncuların yarısı ${med}. bölümde ya da daha geride. ${fmt(past10)} kişi (%${pctN(past10, total)}) 10. bölümü geçti.`));
+}
+
+function renderMoney(s) {
+	const a = s.ads || {}, buys = s.buys || [], places = s.ad_places || [];
+	const box = $("money"), rows = [];
+	rows.push(["İzlenen reklam", fmt(a.watched), `${fmt(a.viewers)} farklı kişi`]);
+	rows.push(["Yarıda kapatılan reklam", fmt(a.skipped), "Ödül verilmedi"]);
+	rows.push(["Reklam hazır değildi", fmt(a.not_ready), a.not_ready ? "Oyuncu istedi ama reklam gelmedi" : ""]);
+	const nb = buys.reduce((t, b) => t + Number(b.n), 0);
+	rows.push(["Satın alma", fmt(nb), buys.map((b) => `${PRODUCT[b.k] || b.k} ×${b.n}`).join(", ")]);
+	const parts = [table([{ t: "" }, { t: "Adet", n: 1 }, { t: "" }], rows)];
+	if (places.length) {
+		const h = el("div", null); h.style.cssText = "margin:16px 0 6px;font-weight:600;font-size:14px"; h.textContent = "Reklam neden istendi?";
+		const b = el("div");
+		hbars(b, places.map((p) => ({ label: PLACE[p.k] || p.k, n: Number(p.n) })));
+		b.querySelectorAll(".n").forEach((x) => x.textContent = x.textContent.replace(" kişi", ""));
+		b.querySelectorAll(".hbar").forEach((x) => x.style.gridTemplateColumns = "200px 1fr 80px");
+		parts.push(h, b);
+	}
+	box.replaceChildren(...parts);
+}
+
+function renderHard(levels) {
+	const box = $("hard");
+	const enough = levels.filter((l) => l.started >= 3);
+	const pool = (enough.length >= 3 ? enough : levels.filter((l) => l.started >= 1));
+	if (!pool.length) { $("hardSay").replaceChildren(); return box.replaceChildren(el("div", "empty", "Henüz yeterli veri yok.")); }
+	const list = pool.map((l) => ({ ...l, p: pctN(l.won, l.started) })).sort((a, b) => (a.p ?? 0) - (b.p ?? 0) || b.started - a.started).slice(0, 8);
+	const w = list[0];
+	$("hardSay").replaceChildren(el("div", "say", enough.length >= 3
+		? `En çok takılınan: Bölüm ${w.level}. Başlayan ${w.started} kişiden ${w.won} tanesi bitirdi (%${w.p}).`
+		: "Henüz az oyuncu var; bir bölümün zor olduğunu söylemek için en az 3 kişinin başlaması gerekiyor. Şimdilik elde olan veri gösteriliyor."));
+	box.replaceChildren(table([{ t: "Bölüm" }, { t: "Başlayan", n: 1 }, { t: "Bitiren", n: 1 }, { t: "Bitirme oranı" }, { t: "Canı biten", n: 1 }, { t: "Yarıda bırakan", n: 1 }, { t: "Ortalama süre", n: 1 }],
+		list.map((l) => [`Bölüm ${l.level}`, fmt(l.started), fmt(l.won), rate(l.p), fmt(l.fails), fmt(l.quits), l.avg_secs == null ? "-" : dur(l.avg_secs)])));
+}
+
+function renderPlayers() {
+	const all = (data && data.list) || [];
+	if (!all.length) { $("moreBox").replaceChildren(); return $("players").replaceChildren(el("div", "empty", "Henüz oyuncu yok.")); }
+	const key = { last: (p) => new Date(p.last).getTime(), cur: (p) => p.cur, play: (p) => p.play, wins: (p) => p.wins, first: (p) => new Date(p.first).getTime() }[sortKey];
+	const list = all.slice().sort((a, b) => key(b) - key(a));
+	const shown = showAll ? list : list.slice(0, 25);
+	$("players").replaceChildren(table(
+		[{ t: "Oyuncu" }, { t: "Bulunduğu bölüm", n: 1, k: "cur" }, { t: "Bitirdiği bölüm", n: 1, k: "wins" }, { t: "Toplam süre", n: 1, k: "play" },
+			{ t: "Reklam", n: 1 }, { t: "Satın alma" }, { t: "Cihaz" }, { t: "İlk geliş", k: "first" }, { t: "Son görülme", k: "last" }],
+		shown.map((p) => {
+			const buy = p.buys ? el("span", "tag buy", `${p.buys} kez`) : el("span", "tag", "yok");
+			return ["#" + p.id, p.cur ? `Bölüm ${fmt(p.cur)}` : "-", fmt(p.wins), dur(p.play), fmt(p.ads), buy,
+				`${PLAT[p.p] || p.p || "?"} · ${p.v || "?"}`, dayName(p.first), ago(p.last)];
+		})));
+	const mb = $("moreBox");
+	if (list.length > 25) {
+		const b = el("button", "link", showAll ? "Daha az göster" : `Tümünü göster (${list.length})`);
+		b.onclick = () => { showAll = !showAll; renderPlayers(); };
+		mb.replaceChildren(b);
+	} else mb.replaceChildren();
+}
+
+let rzT = 0;
+window.addEventListener("resize", () => { clearTimeout(rzT); rzT = setTimeout(() => data && renderChart(data.daily || []), 150); });
 
 start();
 </script>
